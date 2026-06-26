@@ -1,26 +1,114 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --bg-primary: #080c18;
+  --bg-secondary: #0e1428;
+  --bg-card: rgba(255,255,255,0.02);
+  --text-primary: #eef2ff;
+  --text-secondary: #8899c0;
+  --accent-blue: #3b82f6;
+  --accent-sky: #38bdf8;
+  --accent-cyan: #06b6d4;
+  --gradient: linear-gradient(135deg, var(--accent-blue), var(--accent-sky), var(--accent-cyan));
+  --glass-bg: rgba(15, 23, 46, 0.55);
+  --glass-border: rgba(59, 130, 246, 0.12);
+  --glass-shine: rgba(147, 197, 253, 0.06);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* ─── Apple-style iOS Glass ─── */
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 var(--glass-shine);
+}
+
+.glass-ios {
+  background: rgba(15, 23, 46, 0.45);
+  -webkit-backdrop-filter: blur(30px) saturate(1.6);
+  backdrop-filter: blur(30px) saturate(1.6);
+  border: 1px solid rgba(59, 130, 246, 0.08);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25), inset 0 0.5px 0 rgba(147, 197, 253, 0.08);
+}
+
+.glass-card {
+  background: var(--bg-card);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid var(--glass-border);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.glass-card:hover {
+  border-color: rgba(59, 130, 246, 0.25);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.12), 0 0 0 1px rgba(59, 130, 246, 0.08);
+  transform: translateY(-2px);
+}
+
+/* ─── Gradient utilities ─── */
+.gradient-text {
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% auto;
+  animation: shimmer 4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 100% center; }
+}
+
+.gradient-btn {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-sky), var(--accent-cyan));
+  background-size: 200% auto;
+  color: white;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.gradient-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue), var(--accent-sky));
+  background-size: 200% auto;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.gradient-btn:hover {
+  background-position: right center;
+  transform: scale(1.03);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+}
+
+.gradient-btn:active {
+  transform: scale(0.97);
+}
+
+/* ─── Auth page bg ─── */
+.auth-gradient {
+  background: radial-gradient(ellipse at top left, rgba(59, 130, 246, 0.06) 0%, transparent 50%),
+              radial-gradient(ellipse at bottom right, rgba(56, 189, 248, 0.06) 0%, transparent 50%),
+              radial-gradient(ellipse at center, rgba(6, 182, 212, 0.04) 0%, transparent 50%);
+}
+
+/* ─── Hide scrollbar ─── */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ─── Selection ─── */
+::selection { background: rgba(59, 130, 246, 0.3); color: white; }
