@@ -34,8 +34,7 @@ export default function TrendingRow({ icon }: Props) {
     <section className="mb-12">
       <div className="flex items-center gap-2 mb-4">
         <span className="text-[var(--accent)]">{icon}</span>
-        <h2 className="text-xl font-semibold">Trending</h2>
-        <span className="text-xs text-[var(--text-secondary)]">{movies.length} film</span>
+        <h2 className="text-sm font-medium text-[var(--text-main)]">Trending</h2>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {movies.map(movie => (

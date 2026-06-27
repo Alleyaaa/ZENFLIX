@@ -1,16 +1,15 @@
-FROM node:20-alpine AS base
+FROM node:20-alpine
+
 WORKDIR /app
+
 COPY package*.json ./
-RUN npm install
+
+RUN npm ci --prefer-offline --no-audit
+
 COPY . .
+
 RUN npm run build
 
-FROM node:20-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=base /app/.next ./.next
-COPY --from=base /app/public ./public
-COPY --from=base /app/node_modules ./node_modules
-COPY --from=base /app/package*.json ./
 EXPOSE 3000
-CMD ["npm", "start"]
+
+CMD ["npx", "next", "start"]

@@ -1,45 +1,46 @@
 import { notFound } from 'next/navigation'
 import Header from '@/components/Header'
 import MovieCard from '@/components/MovieCard'
-import { getNowPlaying, getPopular, getTopRated, getUpcoming } from '@/lib/tmdb'
-import { Film, TrendingUp, Star, Clock } from 'lucide-react'
 
-const fetchers: Record<string, { fn: (page?: number) => Promise<{ results: any[] }>; icon: React.ReactNode }> = {
-  now_playing: { fn: getNowPlaying, icon: <Film size={18} /> },
-  popular: { fn: getPopular, icon: <TrendingUp size={18} /> },
-  top_rated: { fn: getTopRated, icon: <Star size={18} /> },
-  upcoming: { fn: getUpcoming, icon: <Clock size={18} /> },
-}
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY!
 
-const labels: Record<string, string> = {
-  now_playing: 'Now Playing',
-  popular: 'Popular',
-  top_rated: 'Top Rated',
-  upcoming: 'Upcoming',
+const labels: Record<string, { label: string; filter?: string; order: string }> = {
+  popular: { label: 'Paling Populer', order: 'rating.desc' },
+  top_rated: { label: 'Rating Tertinggi', order: 'rating.desc.nullslast' },
+  latest: { label: 'Terbaru', order: 'year.desc.nullslast' },
+  anime: { label: '🎌 Anime', filter: 'original_language=eq.ja', order: 'rating.desc' },
+  'film-indo': { label: '🎬 Film Indonesia', filter: 'original_language=eq.id', order: 'rating.desc' },
+  series: { label: '📺 Series', filter: 'media_type=eq.tv', order: 'rating.desc' },
+  now_playing: { label: 'Sedang Tayang', order: 'year.desc' },
 }
 
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
-  const slug = (await params).slug
-  const entry = fetchers[slug]
+  const { slug } = await params
+  const entry = labels[slug]
   if (!entry) notFound()
 
-  const data = await entry.fn()
+  let movies: any[] = []
+  try {
+    const filter = entry.filter ? `&${entry.filter}` : ''
+    const url = `${SUPABASE_URL}/rest/v1/movies?select=*${filter}&order=${entry.order}&limit=100`
+    const res = await fetch(url, {
+      headers: { 'apikey': SERVICE_KEY, 'Authorization': `Bearer ${SERVICE_KEY}` },
+    })
+    if (res.ok) movies = await res.json()
+  } catch {}
 
   return (
     <>
       <Header />
-      <main className="max-w-[1400px] mx-auto px-4 py-6">
-        <div className="flex items-center gap-2 mb-6">
-          <span className="text-[var(--accent)]">{entry.icon}</span>
-          <h1 className="text-2xl font-bold">{labels[slug] || slug}</h1>
-          <span className="text-sm text-[var(--text-secondary)] ml-2">({data.results.length} film)</span>
-        </div>
-        {data.results.length === 0 ? (
-          <p className="text-[var(--text-secondary)]">Belum ada film.</p>
+      <main className="max-w-[1400px] mx-auto px-4 py-8 pt-24">
+        <h1 className="text-3xl font-bold mb-8 gradient-text">{entry.label}</h1>
+        {movies.length === 0 ? (
+          <p className="text-[var(--text-muted)]">Belum ada judul untuk kategori ini.</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {data.results.map((movie: any) => (
-              <MovieCard key={movie.id} movie={movie} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+            {movies.map(movie => (
+              <MovieCard key={movie.tmdb_id} movie={movie} />
             ))}
           </div>
         )}

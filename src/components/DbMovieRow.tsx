@@ -1,15 +1,17 @@
 'use client'
 import { useRef, useState } from 'react'
+import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { TMDBMovie } from '@/lib/tmdb'
 import MovieCard from './MovieCard'
 
-export default function MovieRow({
+export default function DbMovieRow({
   title,
   movies: initialMovies,
+  link,
 }: {
   title: string
-  movies: TMDBMovie[]
+  movies: any[]
+  link?: string
 }) {
   const rowRef = useRef<HTMLDivElement>(null)
   const [showLeft, setShowLeft] = useState(false)
@@ -29,11 +31,18 @@ export default function MovieRow({
     setTimeout(updateArrows, 400)
   }
 
-  if (!initialMovies.length) return null
+  if (!initialMovies?.length) return null
 
   return (
     <section>
-      <h2 className="text-xl font-bold text-[var(--text-main)] tracking-tight mb-5 px-1">{title}</h2>
+      <div className="flex items-center gap-3 mb-5 px-1">
+        <h2 className="text-xl font-bold text-[var(--text-main)] tracking-tight">{title}</h2>
+        {link && (
+          <Link href={link} className="text-xs text-[var(--accent)] hover:underline opacity-70 hover:opacity-100 transition-opacity">
+            Lihat semua →
+          </Link>
+        )}
+      </div>
       <div className="relative group/row" onMouseEnter={updateArrows}>
         {showLeft && (
           <button
@@ -50,8 +59,8 @@ export default function MovieRow({
           onScroll={updateArrows}
           className="flex gap-3 overflow-x-auto scroll-smooth pb-3 hide-scrollbar"
         >
-          {initialMovies.map(movie => (
-            <div key={movie.id} className="min-w-[170px] w-[170px] shrink-0">
+          {initialMovies.map((movie: any) => (
+            <div key={movie.tmdb_id || movie.id} className="min-w-[170px] w-[170px] shrink-0">
               <MovieCard movie={movie} />
             </div>
           ))}

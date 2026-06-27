@@ -1,61 +1,115 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { useAuth } from './AuthProvider'
 import Link from 'next/link'
+import { useAuth } from './AuthProvider'
+import { useState, useEffect } from 'react'
+import { Moon, Sun, Languages } from 'lucide-react'
 import SearchDropdown from './SearchDropdown'
 
 export default function Header() {
   const { user, signOut } = useAuth()
   const [scrolled, setScrolled] = useState(false)
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [lang, setLang] = useState<'id' | 'en'>('id')
 
   useEffect(() => {
+    const saved = localStorage.getItem('zenflix-theme')
+    if (saved === 'light' || saved === 'dark') {
+      setTheme(saved)
+      document.documentElement.setAttribute('data-theme', saved)
+    }
+    const savedLang = localStorage.getItem('zenflix-lang')
+    if (savedLang === 'en' || savedLang === 'id') setLang(savedLang)
     const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', onScroll)
+    window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark'
+    setTheme(newTheme)
+    document.documentElement.setAttribute('data-theme', newTheme)
+    localStorage.setItem('zenflix-theme', newTheme)
+  }
+
+  const toggleLang = () => {
+    const newLang = lang === 'id' ? 'en' : 'id'
+    setLang(newLang)
+    localStorage.setItem('zenflix-lang', newLang)
+  }
+
+  const navItems = {
+    id: [
+      { label: 'Home', href: '/' },
+      { label: 'Sedang Tayang', href: '/category/now_playing' },
+      { label: 'Populer', href: '/category/popular' },
+    ],
+    en: [
+      { label: 'Home', href: '/' },
+      { label: 'Now Playing', href: '/category/now_playing' },
+      { label: 'Popular', href: '/category/popular' },
+    ]
+  }
+
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 transition-all duration-300 ${
-        scrolled ? 'glass shadow-lg shadow-black/20' : 'bg-transparent'
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled ? 'glass-nav shadow-lg' : 'bg-transparent'
       }`}
     >
-      <Link href="/" className="text-xl font-black tracking-tighter gradient-text shrink-0">
-        ZENFLIX
-      </Link>
+      <div className="max-w-[1400px] mx-auto flex items-center justify-between px-4 h-16">
+        <Link href="/" className="text-xl font-bold tracking-tight hover:opacity-90 transition-opacity">
+          ZENFLIX
+        </Link>
 
-      <nav className="hidden md:flex items-center gap-1 px-4 py-1.5 rounded-full glass-ios">
-        {[
-          { label: 'Home', href: '/' },
-          { label: 'Now Playing', href: '/category/now_playing' },
-          { label: 'Popular', href: '/category/popular' },
-          { label: 'Premium', href: '/subscribe' },
-        ].map(({ label, href }) => (
-          <Link
-            key={label}
-            href={href}
-            className="px-3.5 py-1.5 text-xs font-medium text-white/70 hover:text-white hover:bg-white/[0.06] rounded-full transition-all"
+        <nav className="hidden md:flex items-center gap-2 px-2 py-1 rounded-full glass-card">
+          {navItems[lang].map(({ label, href }) => (
+            <Link
+              key={label}
+              href={href}
+              className="px-4 py-1.5 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--border)]/30 rounded-full transition-all"
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-2">
+          <SearchDropdown lang={lang} />
+
+          <button
+            onClick={toggleTheme}
+            className="w-8 h-8 rounded-full glass-card flex items-center justify-center hover:bg-[var(--border)]/30 transition-all"
+            title={theme === 'dark' ? 'Switch to Light' : 'Switch to Dark'}
           >
-            {label}
-          </Link>
-        ))}
-      </nav>
+            {theme === 'dark' ? (
+              <Sun size={16} className="text-[var(--text-muted)]" />
+            ) : (
+              <Moon size={16} className="text-[var(--text-muted)]" />
+            )}
+          </button>
 
-      <div className="flex items-center gap-3">
-        <SearchDropdown />
-        {user ? (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full glass-ios text-xs">
-            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center text-[9px] font-bold text-white shrink-0">
-              {user.email?.[0]?.toUpperCase() || 'U'}
+          <button
+            onClick={toggleLang}
+            className="w-8 h-8 rounded-full glass-card flex items-center justify-center hover:bg-[var(--border)]/30 transition-all"
+            title={lang === 'id' ? 'Switch to English' : 'Ganti ke Indonesia'}
+          >
+            <Languages size={16} className="text-[var(--text-muted)]" />
+          </button>
+
+          {user ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full glass-card text-sm">
+              <div className="w-6 h-6 rounded-full bg-[var(--accent)] flex items-center justify-center text-xs font-bold shrink-0" style={{color:'#0c1220'}}>
+                {user.email?.[0]?.toUpperCase() || 'U'}
+              </div>
+              <span className="text-[var(--text-muted)] truncate max-w-[100px]">{user.email}</span>
+              <button onClick={signOut} className="text-[var(--accent)] hover:opacity-80 ml-1">✕</button>
             </div>
-            <span className="text-white/70 truncate max-w-[100px]">{user.email}</span>
-            <button onClick={signOut} className="text-blue-300 hover:text-blue-200 ml-1">✕</button>
-          </div>
-        ) : (
-          <Link href="/auth" className="px-4 py-1.5 rounded-full bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-400 hover:to-sky-400 text-xs font-semibold text-white shadow-lg shadow-blue-500/20 transition-all">
-            Sign In
-          </Link>
-        )}
+          ) : (
+            <Link href="/auth" className="btn-primary">
+              Sign In
+            </Link>
+          )}
+        </div>
       </div>
     </header>
   )

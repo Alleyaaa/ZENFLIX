@@ -1,6 +1,10 @@
-*.env
-.env.local
-.next/
 node_modules/
+.next/
+out/
+.env
+.env.local
+.env.production
 *.log
-.DS_Store
+scripts/*.py
+scripts/create_tables.sql
+src/middleware.ts

@@ -1,122 +1,93 @@
 'use client'
+import { useState } from 'react'
 import Header from '@/components/Header'
-import { Check } from 'lucide-react'
+import { Check, Crown, Sparkles, Star, Shield } from 'lucide-react'
 
-const PLANS = [
-  {
-    name: 'Free',
-    price: 0,
-    period: '',
-    popular: false,
-    features: ['Akses 50+ film gratis', 'Iklan saat streaming', 'Kualitas SD'],
-    missing: ['Tanpa iklan', 'Kualitas HD', 'Prioritas server'],
-  },
-  {
-    name: '1 Month',
-    price: 30,
-    period: '/bln',
-    popular: true,
-    features: ['Streaming tanpa iklan', 'Kualitas HD & 4K', 'Prioritas server', 'Akses semua film'],
-    missing: [],
-  },
-  {
-    name: '3 Months',
-    price: 100,
-    period: '(33rb/bln)',
-    popular: false,
-    features: ['Semua fitur 1 Bulan', 'Hemat 15rb/bulan', 'Support prioritas', 'Early access fitur baru'],
-    missing: [],
-  },
-  {
-    name: '12 Months',
-    price: 300,
-    period: '(25rb/bln)',
-    popular: false,
-    features: ['Semua fitur Premium', 'Hemat 60rb/bulan', 'VIP support 24/7', 'Nama di credits'],
-    missing: [],
-  },
+const TIERS = [
+  { name: 'Free', price: 0, priceLabel: 'Gratis', color: 'from-gray-500/20 to-gray-600/10', icon: Shield, features: ['720p Streaming', 'Ads Supported', '10 Movies/Month'], btn: 'Mulai Gratis', popular: false },
+  { name: 'Standard', price: 50000, priceLabel: 'Rp50.000', color: 'from-blue-500/20 to-blue-600/10', icon: Star, features: ['1080p Full HD', 'No Ads', '100 Movies/Month', 'Priority Support'], btn: 'Pilih Standard', popular: false },
+  { name: 'Premium', price: 100000, priceLabel: 'Rp100.000', color: 'from-purple-500/20 to-purple-600/10', icon: Crown, features: ['4K Ultra HD', 'No Ads', 'Unlimited Movies', 'Download', '2 Devices'], btn: 'Pilih Premium', popular: true },
+  { name: 'Ultimate', price: 150000, priceLabel: 'Rp150.000', color: 'from-yellow-500/20 to-yellow-600/10', icon: Sparkles, features: ['4K Ultra HD', 'No Ads', 'Unlimited + Early Access', 'VIP Support', '4 Devices', 'Download'], btn: 'Pilih Ultimate', popular: false },
 ]
 
-export default function SubscribePage() {
+export default function Subscribe() {
+  const [loading, setLoading] = useState<string | null>(null)
+
+  const handleSubscribe = async (tier: any) => {
+    if (tier.price === 0) return
+    setLoading(tier.name)
+    try {
+      const res = await fetch('/api/subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: 'demo', email: 'demo@zenflix.id', name: 'Demo User', tier: tier.name.toLowerCase(), amount: tier.price })
+      })
+      const data = await res.json()
+      if (data.token) {
+        // @ts-ignore
+        window.snap.pay(data.token)
+      } else if (data.redirect_url) {
+        window.location.href = data.redirect_url
+      } else {
+        alert('Error: ' + (data.error || JSON.stringify(data)))
+      }
+    } catch (e: any) {
+      alert('Error: ' + e.message)
+    }
+    setLoading(null)
+  }
+
   return (
     <>
+      <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-qmeS3TNJy6v26wpx" async></script>
       <Header />
-      <div className="min-h-screen pb-20 pt-28">
-        <div className="max-w-[1100px] mx-auto px-4">
-          <div className="text-center mb-14">
-            <h1 className="text-4xl md:text-5xl font-bold mb-3 gradient-text">Pilih Paket</h1>
-            <p className="text-[var(--text-secondary)] max-w-md mx-auto text-sm">
-              Streaming film dan series tanpa hambatan. Batal kapan aja.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-4 gap-4">
-            {PLANS.map((plan) => (
-              <div
-                key={plan.name}
-                className={`relative rounded-2xl p-6 transition-all duration-300 ${
-                  plan.popular
-                    ? 'glass ring-1 ring-blue-400/40 shadow-lg shadow-blue-500/5 scale-[1.02]'
-                    : 'glass-ios hover:ring-1 hover:ring-white/10'
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
-                    <span className="px-3 py-0.5 rounded-full text-[10px] font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
-                      TERLARIS
-                    </span>
-                  </div>
-                )}
-
-                <div className="space-y-5">
-                  <div className="text-center">
-                    <div className="text-sm font-medium text-white/50">{plan.name}</div>
-                    <div className="mt-1">
-                      {plan.price === 0 ? (
-                        <span className="text-3xl font-black">Gratis</span>
-                      ) : (
-                        <>
-                          <span className="text-3xl font-black">IDR {plan.price}K</span>
-                          <span className="text-sm text-white/40 ml-1">{plan.period}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <ul className="space-y-2.5">
-                    {plan.features.map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs text-[var(--text-primary)]/80">
-                        <Check size={13} className="text-sky-400 shrink-0 mt-0.5" />
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                    {plan.missing?.map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs text-white/20">
-                        <span className="w-3.5 shrink-0 mt-0.5 text-center text-white/20">—</span>
-                        <span className="line-through">{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <button
-                    className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${
-                      plan.price === 0
-                        ? 'glass-ios hover:bg-white/[0.04] text-white/70'
-                        : 'gradient-btn'
-                    }`}
-                  >
-                    {plan.price === 0 ? 'Mulai Gratis' : `Langganan ${plan.name}`}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <p className="text-center text-xs text-white/30 mt-8">
-            Pembayaran aman. Batalkan kapan aja.
-          </p>
+      <main className="min-h-screen pt-24 pb-20">
+        <div className="max-w-[1200px] mx-auto px-4 text-center mb-14">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4 gradient-text">Pilih Paket Langganan</h1>
+          <p className="text-[var(--text-muted)] max-w-2xl mx-auto">Buka akses tak terbatas ke ribuan film & serial berkualitas tinggi.</p>
         </div>
-      </div>
+
+        <div className="max-w-[1200px] mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          {TIERS.map((tier, idx) => (
+            <div key={idx} className={`relative glass-card rounded-2xl p-6 border transition-all duration-300 hover:translate-y-[-2px] ${tier.popular ? 'border-purple-500/40 shadow-lg scale-[1.02]' : 'border-white/5'}`}>
+              {tier.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-purple-600 to-purple-800 text-white text-[10px] font-bold tracking-wide uppercase shadow-lg">POPULAR</div>
+              )}
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-gradient-to-br ${tier.color}`}>
+                <tier.icon size={24} className={tier.name === 'Free' ? 'text-gray-400' : tier.name === 'Standard' ? 'text-blue-400' : tier.name === 'Premium' ? 'text-purple-400' : 'text-yellow-400'} />
+              </div>
+              <h3 className="text-xl font-bold mb-1">{tier.name}</h3>
+              <div className="mt-2 mb-4">
+                <span className="text-3xl font-bold">{tier.priceLabel}</span>
+                {tier.price > 0 && <span className="text-xs text-[var(--text-tertiary)] ml-1">/bln</span>}
+              </div>
+              <div className="space-y-2 mb-6">
+                {tier.features.map((f, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm">
+                    <Check size={15} className="text-green-400 shrink-0 mt-0.5" />
+                    <span className="text-[var(--text-muted)]">{f}</span>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => handleSubscribe(tier)} disabled={loading === tier.name} className={`w-full py-2.5 rounded-xl text-sm font-medium transition-all ${tier.popular ? 'bg-gradient-to-r from-purple-600 to-purple-800 text-white font-semibold shadow-lg shadow-purple-500/20' : 'glass-btn'} ${loading === tier.name ? 'opacity-50' : ''}`}>
+                {loading === tier.name ? 'Memproses...' : tier.btn}
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="max-w-[1200px] mx-auto px-4 mt-16">
+          <div className="glass-card rounded-2xl p-6 border border-white/5 text-center">
+            <div className="flex flex-wrap gap-6 justify-center mb-2 text-sm text-[var(--text-tertiary)]">
+              <span>💳 Kartu Kredit</span>
+              <span>🏦 Transfer Bank</span>
+              <span>📱 QRIS</span>
+              <span>💰 GoPay / OVO / Dana</span>
+            </div>
+            <p className="text-xs text-[var(--text-tertiary)]">🔒 Pembayaran aman & terenkripsi via Midtrans</p>
+          </div>
+        </div>
+      </main>
     </>
   )
 }

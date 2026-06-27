@@ -36,8 +36,8 @@ export default function AuthForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="glass p-8 rounded-2xl space-y-5 max-w-md w-full mx-auto">
-      <h2 className="text-2xl font-bold text-center">{isLogin ? 'Sign In' : 'Create Account'}</h2>
+    <form onSubmit={handleSubmit} className="glass-card p-8 rounded-2xl space-y-5 max-w-md w-full mx-auto">
+      <h2 className="text-2xl font-bold text-center text-[var(--text-main)]">{isLogin ? 'Sign In' : 'Create Account'}</h2>
       {error && <div className="text-red-400 text-sm text-center bg-red-500/10 p-3 rounded-xl">{error}</div>}
       {success && <div className="text-green-400 text-sm text-center bg-green-500/10 p-3 rounded-xl">{success}</div>}
       <input
@@ -45,7 +45,7 @@ export default function AuthForm() {
         placeholder="Email"
         value={email}
         onChange={e => setEmail(e.target.value)}
-        className="w-full p-3 rounded-xl bg-white/[0.06] border border-white/[0.1] outline-none text-white placeholder-gray-500 focus:border-white/30 transition-all"
+        className="w-full p-3 rounded-xl bg-[var(--border)]/20 border border-[var(--border)] outline-none text-[var(--text-main)] placeholder-[var(--text-tertiary)] focus:border-[var(--color-accent)] transition-all"
         required
       />
       <input
@@ -53,13 +53,13 @@ export default function AuthForm() {
         placeholder="Password"
         value={password}
         onChange={e => setPassword(e.target.value)}
-        className="w-full p-3 rounded-xl bg-white/[0.06] border border-white/[0.1] outline-none text-white placeholder-gray-500 focus:border-white/30 transition-all"
+        className="w-full p-3 rounded-xl bg-[var(--border)]/20 border border-[var(--border)] outline-none text-[var(--text-main)] placeholder-[var(--text-tertiary)] focus:border-[var(--color-accent)] transition-all"
         required
       />
-      <button type="submit" disabled={loading} className="w-full py-3 rounded-xl text-lg font-semibold shadow-lg gradient-btn disabled:opacity-50">
+      <button type="submit" disabled={loading} className="w-full py-3 rounded-xl text-lg font-semibold shadow-lg btn-primary text-center disabled:opacity-50">
         {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Sign Up'}
       </button>
-      <button type="button" className="text-xs text-gray-400 w-full hover:text-white transition-colors" onClick={() => { setIsLogin(!isLogin); setError(''); setSuccess('') }}>
+      <button type="button" className="text-xs text-[var(--text-tertiary)] w-full hover:text-[var(--text-main)] transition-colors" onClick={() => { setIsLogin(!isLogin); setError(''); setSuccess('') }}>
         {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
       </button>
     </form>

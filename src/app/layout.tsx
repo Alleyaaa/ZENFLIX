@@ -28,7 +28,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased">
+      <body className="min-h-screen bg-[var(--bg)] text-[var(--text-main)] antialiased">
         <AuthProvider>
           {children}
         </AuthProvider>
