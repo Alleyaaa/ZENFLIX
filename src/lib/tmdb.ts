@@ -78,6 +78,10 @@ export async function getTVDetail(id: number): Promise<TMDBTV> {
   return fetchTmdb(`/tv/${id}?append_to_response=credits,similar`)
 }
 
+export async function getPopularTV(page = 1): Promise<{ results: TMDBMovie[] }> {
+  return fetchTmdb(`/tv/popular?page=${page}`)
+}
+
 export async function searchMovies(query: string): Promise<{ results: TMDBMovie[] }> {
   return fetchTmdb(`/search/movie?query=${encodeURIComponent(query)}`)
 }

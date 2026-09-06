@@ -1,10 +1,32 @@
-import { getTVDetail } from '@/lib/tmdb'
+import { getTVDetail, getPopular } from '@/lib/tmdb'
+import type { Metadata } from 'next'
 import Header from '@/components/Header'
 import MovieCard from '@/components/MovieCard'
-import PlayerTV from '@/components/PlayerTV'
+import TVEpisodePicker from '@/components/TVEpisodePicker'
+import AdSlot from '@/components/AdSlot'
 import { notFound } from 'next/navigation'
-import { Calendar, Clock, Star } from 'lucide-react'
+import { Calendar, Clock, Star, Tv } from 'lucide-react'
 import Link from 'next/link'
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const tmdbId = parseInt((await params).id)
+  if (isNaN(tmdbId)) return {}
+  try {
+    const show: any = await getTVDetail(tmdbId)
+    const year = show.first_air_date?.split('-')[0] || ''
+    return {
+      title: `${show.name || 'Series'} (${year}) | Zenflix`,
+      description: show.overview?.slice(0, 160) || `Nonton series ${show.name} di Zenflix.`,
+      openGraph: {
+        title: `${show.name || 'Series'} (${year}) | Zenflix`,
+        description: show.overview?.slice(0, 160),
+        type: 'video.tv_show',
+      },
+    }
+  } catch {
+    return {}
+  }
+}
 
 export default async function TVDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const tmdbId = parseInt((await params).id)
@@ -13,11 +35,14 @@ export default async function TVDetailPage({ params }: { params: Promise<{ id: s
   let show: any = {}
   let cast: any[] = []
   let similar: any[] = []
+  let recommendations: any[] = []
 
   try {
     show = await getTVDetail(tmdbId)
     cast = show.credits?.cast?.slice(0, 12) || []
     similar = show.similar?.results?.slice(0, 12) || []
+    const pop = await getPopular()
+    recommendations = pop.results?.slice(0, 10) || []
   } catch {
     try {
       const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -49,7 +74,7 @@ export default async function TVDetailPage({ params }: { params: Promise<{ id: s
   return (
     <>
       <Header />
-      <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden">
+      <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden cinema-backdrop">
         {backdrop ? (
           <img src={backdrop} alt="" className="w-full h-full object-cover" />
         ) : (
@@ -61,26 +86,29 @@ export default async function TVDetailPage({ params }: { params: Promise<{ id: s
       <div className="max-w-[1400px] mx-auto px-4 -mt-40 relative z-10">
         <div className="flex gap-6 items-end">
           {poster && (
-            <div className="w-48 shrink-0 hidden md:block rounded-xl overflow-hidden shadow-2xl border border-white/10">
+            <div className="w-48 shrink-0 hidden md:block rounded-xl overflow-hidden shadow-2xl border border-[var(--border)]">
               <img src={poster} alt={show.name} className="w-full" />
             </div>
           )}
           <div className="flex-1 min-w-0 py-4">
-            <h1 className="text-3xl md:text-5xl font-bold mb-3 gradient-text">{show.name || 'Unknown'}</h1>
+            <h1 className="text-3xl md:text-5xl font-bold mb-3">{show.name || 'Unknown'}</h1>
             <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--text-muted)] mb-4">
               {show.first_air_date && (
                 <span className="flex items-center gap-1"><Calendar size={14} />{show.first_air_date.split('-')[0]}</span>
               )}
+              {show.number_of_seasons > 0 && (
+                <span className="flex items-center gap-1"><Tv size={14} />{show.number_of_seasons} Season</span>
+              )}
               {show.vote_average > 0 && (
                 <span className="flex items-center gap-1 glass-card px-2 py-0.5 rounded-full">
-                  <Star size={12} className="text-yellow-400 fill-yellow-400" />{show.vote_average.toFixed(1)}
+                  <Star size={12} className="text-[var(--accent)] fill-[var(--accent)]" />{show.vote_average.toFixed(1)}
                 </span>
               )}
             </div>
             {show.genres?.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {show.genres.map((g: any) => (
-                  <Link key={g.id} href={'/genre/' + g.id} className="px-3 py-1 rounded-full text-xs glass-card hover:bg-white/10 transition-all">
+                  <Link key={g.id} href={'/genre/' + g.id} className="px-3 py-1 rounded-full text-xs glass-card hover:bg-[var(--bg-elevated)] transition-all">
                     {g.name}
                   </Link>
                 ))}
@@ -98,7 +126,12 @@ export default async function TVDetailPage({ params }: { params: Promise<{ id: s
           </section>
         )}
 
-        <PlayerTV tmdbId={tmdbId} seasons={seasons} />
+        {/* Season & Episode picker + player */}
+        <section>
+          <TVEpisodePicker tmdbId={tmdbId} seasons={seasons} />
+        </section>
+
+        <AdSlot slot="player_pre_roll" format="leaderboard" />
 
         {cast.length > 0 && (
           <section>
@@ -123,7 +156,7 @@ export default async function TVDetailPage({ params }: { params: Promise<{ id: s
 
         {similar.length > 0 && (
           <section>
-            <h2 className="text-lg font-semibold mb-4">Film Serupa</h2>
+            <h2 className="text-lg font-semibold mb-4">Series Serupa</h2>
             <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
               {similar.map((m: any) => (
                 <div key={m.id} className="min-w-[140px] w-[140px] shrink-0">
@@ -133,6 +166,21 @@ export default async function TVDetailPage({ params }: { params: Promise<{ id: s
             </div>
           </section>
         )}
+
+        {recommendations.length > 0 && (
+          <section>
+            <h2 className="text-lg font-semibold mb-4">Rekomendasi untukmu</h2>
+            <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
+              {recommendations.map((m: any) => (
+                <div key={m.id} className="min-w-[140px] w-[140px] shrink-0">
+                  <MovieCard movie={m} />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <AdSlot slot="sidebar" format="rect" />
       </main>
     </>
   )

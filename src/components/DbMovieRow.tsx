@@ -4,15 +4,13 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import MovieCard from './MovieCard'
 
-export default function DbMovieRow({
-  title,
-  movies: initialMovies,
-  link,
-}: {
+interface DbMovieRowProps {
   title: string
   movies: any[]
   link?: string
-}) {
+}
+
+export default function DbMovieRow({ title, movies: initialMovies, link }: DbMovieRowProps) {
   const rowRef = useRef<HTMLDivElement>(null)
   const [showLeft, setShowLeft] = useState(false)
   const [showRight, setShowRight] = useState(true)
@@ -26,7 +24,7 @@ export default function DbMovieRow({
 
   const scroll = (dir: 'left' | 'right') => {
     if (!rowRef.current) return
-    const dist = rowRef.current.clientWidth * 0.75
+    const dist = rowRef.current.clientWidth * 0.85
     rowRef.current.scrollBy({ left: dir === 'left' ? -dist : dist, behavior: 'smooth' })
     setTimeout(updateArrows, 400)
   }
@@ -35,8 +33,8 @@ export default function DbMovieRow({
 
   return (
     <section>
-      <div className="flex items-center gap-3 mb-5 px-1">
-        <h2 className="text-xl font-bold text-[var(--text-main)] tracking-tight">{title}</h2>
+      <div className="flex items-center justify-between mb-4 px-1">
+        <h2 className="text-lg md:text-xl font-bold text-[var(--text-main)] tracking-tight">{title}</h2>
         {link && (
           <Link href={link} className="text-xs text-[var(--accent)] hover:underline opacity-70 hover:opacity-100 transition-opacity">
             Lihat semua →
@@ -47,9 +45,10 @@ export default function DbMovieRow({
         {showLeft && (
           <button
             onClick={() => scroll('left')}
-            className="absolute -left-2 top-0 bottom-0 z-20 flex items-center opacity-0 group-hover/row:opacity-100 transition-opacity duration-200"
+            className="absolute -left-2 md:-left-4 top-0 bottom-0 z-20 flex items-center opacity-0 group-hover/row:opacity-100 transition-opacity duration-200 md:block hidden"
+            aria-label="Scroll ke kiri"
           >
-            <div className="w-9 h-9 rounded-full bg-[var(--bg-surface)] border border-[var(--border)] flex items-center justify-center cursor-pointer hover:bg-[var(--border)]/30 hover:border-[var(--color-accent)] transition-all">
+            <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-[var(--bg-surface)] border border-[var(--border)] flex items-center justify-center cursor-pointer hover:bg-[var(--border)]/30 hover:border-[var(--accent)] transition-all shadow-lg">
               <ChevronLeft size={18} className="text-[var(--text-muted)]" />
             </div>
           </button>
@@ -57,10 +56,11 @@ export default function DbMovieRow({
         <div
           ref={rowRef}
           onScroll={updateArrows}
-          className="flex gap-3 overflow-x-auto scroll-smooth pb-3 hide-scrollbar"
+          className="flex gap-2 md:gap-3 overflow-x-auto scroll-smooth pb-2 md:pb-3 hide-scrollbar"
+          style={{ scrollSnapType: 'x mandatory' }}
         >
           {initialMovies.map((movie: any) => (
-            <div key={movie.tmdb_id || movie.id} className="min-w-[170px] w-[170px] shrink-0">
+            <div key={movie.tmdb_id || movie.id} className="min-w-[140px] md:min-w-[160px] w-[140px] md:w-[160px] shrink-0 snap-start">
               <MovieCard movie={movie} />
             </div>
           ))}
@@ -68,9 +68,10 @@ export default function DbMovieRow({
         {showRight && (
           <button
             onClick={() => scroll('right')}
-            className="absolute -right-2 top-0 bottom-0 z-20 flex items-center opacity-0 group-hover/row:opacity-100 transition-opacity duration-200"
+            className="absolute -right-2 md:-right-4 top-0 bottom-0 z-20 flex items-center opacity-0 group-hover/row:opacity-100 transition-opacity duration-200 md:block hidden"
+            aria-label="Scroll ke kanan"
           >
-            <div className="w-9 h-9 rounded-full bg-[var(--bg-surface)] border border-[var(--border)] flex items-center justify-center cursor-pointer hover:bg-[var(--border)]/30 hover:border-[var(--color-accent)] transition-all">
+            <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-[var(--bg-surface)] border border-[var(--border)] flex items-center justify-center cursor-pointer hover:bg-[var(--border)]/30 hover:border-[var(--accent)] transition-all shadow-lg">
               <ChevronRight size={18} className="text-[var(--text-muted)]" />
             </div>
           </button>

@@ -1,379 +1,137 @@
-<div align="center">
-  <img src="https://img.shields.io/badge/Next.js-16.2.9-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
-  <img src="https://img.shields.io/badge/TypeScript-%5E5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind" />
-  <img src="https://img.shields.io/badge/Docker-Alpine-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
-  <img src="https://img.shields.io/badge/Supabase-FF4438?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
-  <img src="https://img.shields.io/badge/TMDB_API-01D277?style=for-the-badge&logo=themoviedatabase&logoColor=white" alt="TMDB" />
-  <img src="https://img.shields.io/badge/Midtrans_Sandbox-0063A5?style=for-the-badge&logo=midtrans&logoColor=white" alt="Midtrans" />
-</div>
+# 🎬 Zenflix — Streaming Film Gratis Premium
 
-<br />
+> Streaming film & series terbaik dalam HD, tanpa buffering. Dibangun dengan Next.js, TypeScript, Tailwind, Supabase, dan TMDB.
 
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://readme-typing-svg.demolab.com?font=Inter&weight=900&size=48&duration=3000&pause=500&color=60A5FA&center=true&vCenter=true&width=600&height=80&lines=ZENFLIX;NONTON+FILM+GRATIS;STREAMING+HD;ZERO+BUFFERING;PAYMENT+GATEWAY" />
-    <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=900&size=48&duration=3000&pause=500&color=1E40AF&center=true&vCenter=true&width=600&height=80&lines=ZENFLIX;NONTON+FILM+GRATIS;STREAMING+HD;ZERO+BUFFERING;PAYMENT+GATEWAY" />
-  </picture>
-</p>
-
-<p align="center">
-  <b>Stream the best movies & series in stunning HD, zero buffering.</b><br />
-  Platform streaming film dengan glassmorphism UI, favorit/watchlist,<br />
-  subscription tiers, dan Midtrans payment gateway.
-</p>
-
-<p align="center">
-  <a href="#-fitur">✨ Fitur</a> •
-  <a href="#-quick-start">🚀 Quick Start</a> •
-  <a href="#-progress">📋 Progress</a> •
-  <a href="#-arsitektur">🏗️ Arsitektur</a> •
-  <a href="#-variabel-lingkungan">🔐 .env</a> •
-  <a href="#-tech-stack">🛠️ Tech Stack</a>
-</p>
-
----
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://typescriptlang.org)
+[![Tailwind](https://img.shields.io/badge/Tailwind-4-38bdf8)](https://tailwindcss.com)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ## ✨ Fitur
 
-<table>
-  <tr>
-    <td align="center">🎥</td>
-    <td><b>Trending, Now Playing, Popular, Top Rated</b><br/>4 kategori film real-time dari TMDB</td>
-  </tr>
-  <tr>
-    <td align="center">🔍</td>
-    <td><b>Live Search Dropdown</b><br/>Cari film instan dengan debounce + autocomplete</td>
-  </tr>
-  <tr>
-    <td align="center">📺</td>
-    <td><b>TV Series + Season/Episode Picker</b><br/>Episode selector & player khusus series</td>
-  </tr>
-  <tr>
-    <td align="center">▶️</td>
-    <td><b>Dual Player (VidSrc + Fallback)</b><br/>Primary player + fallback trailer YouTube</td>
-  </tr>
-  <tr>
-    <td align="center">❤️</td>
-    <td><b>Favorites & Watchlist</b><br/>Simpan film favorit & tontonan nanti di local</td>
-  </tr>
-  <tr>
-    <td align="center">🔐</td>
-    <td><b>Supabase Auth</b><br/>Register & login dengan session persistence</td>
-  </tr>
-  <tr>
-    <td align="center">💳</td>
-    <td><b>Midtrans Payment Gateway</b><br/>Subscription Premium/Ultimate via Snap popup</td>
-  </tr>
-  <tr>
-    <td align="center">🎨</td>
-    <td><b>Glassmorphism iOS-style UI</b><br/>Dark theme, efek kaca, gradient text</td>
-  </tr>
-  <tr>
-    <td align="center">🐳</td>
-    <td><b>Docker Single-Stage</b><br/>Build & run cepat tanpa multi-stage</td>
-  </tr>
-  <tr>
-    <td align="center">🔄</td>
-    <td><b>Genres & Category Pages</b><br/>Browse film berdasarkan genre & kategori</td>
-  </tr>
-</table>
+### 🎥 Streaming
+- **4 Channel player** (Source 1-4) dari mirror VidSrc — otomatis fallback
+- **Resume dari posisi terakhir** (progress tersimpan per user)
+- **Skip intro** untuk film/series
+- **Trailer YouTube resmi** sebagai fallback terakhir
+- Subtitle default Bahasa Indonesia (`ds_lang=id`)
+- Auto-next episode untuk TV series
 
----
+### 🗂️ Browse
+- **19+ genre** lengkap dengan pagination (24/36/48/60 per halaman)
+- Filter **Tahun** (2017-2026), **Negara** (12 negara), **Jaringan/Source** (Netflix, HBO, dll)
+- **Koleksi** film (Marvel, DC, Star Wars, Harry Potter, dll)
+- Pencarian instan dengan debounce + autocomplete
+
+### 👤 Akun & Progress
+- Register/Login via Supabase Auth
+- **Watchlist & Favorit** tersimpan per user
+- **Riwayat nonton** + **Lanjutkan menonton** (progress bar)
+- Profile lengkap: stats, achievement, subscription, leaderboard
+
+### 🏆 Gamification
+- **Achievement & Medal** (25+ jenis, 5 tier: Bronze→Diamond)
+- **Reward points** yang bisa dikumpulkan
+- **User Tier** (Newbie → Watcher → Cinephile → Film Buff → Binge Master → Marathon Master → Zenflix Legend)
+- **Leaderboard** (Harian/Mingguan/Bulanan/Semua Waktu)
+- **Notifikasi badge** di pojok kanan bawah saat achievement terbuka
+
+### 💳 Subscription
+- 4 paket: **Free, Standard, Premium, Ultimate**
+- Payment via **Midtrans** (credit card, bank transfer, QRIS, e-wallet)
+- Webhook verifikasi signature + auto-update subscription
+
+### 📢 Monetisasi
+- Slot **iklan** (AdSlot component): home, genre, player, sidebar
+- User premium = **bebas iklan**
+- CTA **"Nonton Tanpa Iklan"** untuk upgrade
+
+### 🔍 SEO
+- Meta dinamis per halaman
+- `sitemap.xml` + `robots.txt`
+- JSON-LD Movie schema
+- PWA `manifest.webmanifest`
+- Open Graph + Twitter Card
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- **Node.js** 20+ _(atau Docker Desktop untuk container)_
-- **TMDB API Key** — [daftar gratis di sini](https://www.themoviedb.org/settings/api)
-- **Supabase Project** — [buat proyek gratis](https://supabase.com)
-- **Midtrans Account** — [daftar sandbox](https://dashboard.midtrans.com/register)
-
-### 1. Clone
-
 ```bash
-git clone https://github.com/Alleyaaa/ZENFLIX.git
+# 1. Clone
+git clone https://github.com/yourusername/ZENFLIX.git
 cd ZENFLIX
-```
 
-### 2. Environment Variables
+# 2. Setup environment
+cp .env.example .env
+# Isi TMDB_API_KEY, Supabase keys, Midtrans keys
 
-Buat file `.env` di root project:
+# 3. Setup database (Supabase → SQL Editor → jalankan supabase_schema.sql)
 
-```env
-TMDB_API_KEY=your_tmdb_api_key_here
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_KEY=your_supabase_service_role_key
-MIDTRANS_SERVER_KEY=Mid-server-xxxxxxxxxxxxxxxxxxxx
-MIDTRANS_CLIENT_KEY=Mid-client-xxxxxxxxxxxxxxxxxxxx
-```
+# 4. Install & run
+npm install
+npm run dev
+# Buka http://localhost:3000
 
-### 3. Jalankan dengan Docker 🐳
-
-```bash
+# Atau pakai Docker
 docker build -t zenflix-app .
 docker run -d --name zenflix-app --rm -p 3005:3000 --dns 8.8.8.8 --env-file .env zenflix-app
 ```
 
-Buka **http://localhost:3005** 🎉
-
-### 4. Atau tanpa Docker (Development)
+## 🐳 Docker
 
 ```bash
-npm install
-npm run dev
+docker build -t zenflix-app .
+docker run -d --name zenflix-app --rm -p 3005:3000 --dns 8.8.8.8 --env-file .env zenflix-app
+# Buka http://localhost:3005
 ```
 
-Buka **http://localhost:3000** 🎉
+## 🌍 Deploy ke Vercel
 
-### 5. Setup Database (Supabase SQL Editor)
-
-Jalankan SQL berikut di Supabase SQL Editor:
-
-```sql
--- Watchlist table
-CREATE TABLE IF NOT EXISTS public.watchlist (
-  id bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-  user_id uuid NOT NULL,
-  movie_id bigint NOT NULL,
-  title text,
-  poster_url text,
-  rating numeric,
-  media_type text,
-  created_at timestamptz DEFAULT now()
-);
-
--- Subscriptions table
-CREATE TABLE IF NOT EXISTS public.subscriptions (
-  id bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-  user_id uuid NOT NULL,
-  tier text NOT NULL DEFAULT 'free',
-  active boolean DEFAULT false,
-  expires_at timestamptz,
-  created_at timestamptz DEFAULT now()
-);
+```bash
+npx vercel login
+npx vercel --prod
 ```
 
----
-
-## 📋 Progress
-
-### ✅ Sudah Berfungsi
-- [x] Homepage dengan hero + movie rows
-- [x] Live search dropdown dengan debounce
-- [x] Detail film: sinopsis, cast, rating, similar movies
-- [x] TV Series: season/episode picker + player
-- [x] Dual player: VidSrc (primary) + trailer YouTube (fallback)
-- [x] Supabase auth: register, login, session persistence
-- [x] Genre & category browsing
-- [x] Glassmorphism UI (merata di seluruh halaman)
-- [x] Favorites & Watchlist (localStorage)
-- [x] Subscription popup card + floating navigation
-- [x] 4-tier pricing: Free, Standard, Premium, Ultimate
-- [x] Midtrans payment integration (Snap popup)
-- [x] Docker containerized
-- [x] Lazy loading poster & skeleton loading
-
-### ⏳ Dalam Pengerjaan
-- [ ] **Hero banner** — dynamic featured film
-- [ ] **Search autocomplete** — improve suggestions
-- [ ] **Filter genre, year, rating** di category page
-- [ ] **Infinite scroll / pagination** proper
-- [ ] **Register / Login page** — validasi & error handling proper
-- [ ] **Email verification** — setelah register
-- [ ] **Forgot / reset password** flow
-- [ ] **Session management** — auto-logout expired
-- [ ] **Watch history & continue watching**
-- [ ] **User profile page** — avatar, username, ganti password
-- [ ] **Invoice / transaction history**
-- [ ] **Auto-renewal reminder** (H-3 expired)
-- [ ] **Refund flow** (manual dulu oke)
-- [ ] **PWA** — installable on mobile
-- [ ] **Multi-language** (ID/EN toggle sudah ada iconnya)
-- [ ] **Trailer modal** — sebelum nonton
-- [ ] **Rating & review** dari user
-
-### 🔒 Security (belum)
-- [ ] Helmet.js — HTTP security headers
-- [ ] Rate limiting
-- [ ] CORS config proper
-- [ ] Input sanitization / SQL injection prevention
-- [ ] JWT refresh token mechanism
-- [ ] HTTPS (SSL certificate)
-
-### 🟢 Legal (kalau monetize)
-- [ ] Terms of Service page
-- [ ] Privacy Policy page
-- [ ] Cookie consent banner
-- [ ] DMCA notice page
-- [ ] Contact / support page
-
-### 🎯 Next Up
-- [ ] **Hero banner dynamic** — slider film featured dari TMDB
-- [ ] **Skeleton loading** — semua halaman (belum merata)
-- [ ] **Payment webhook** — update DB subscription dari Midtrans
-- [ ] **API caching** — Redis atau CDN
-- [ ] **Error tracking** — Sentry
-
----
-
-## 🏗️ Arsitektur
-
+Set environment variables di Vercel Dashboard:
 ```
-zenflix/
-├── src/
-│   ├── app/
-│   │   ├── api/                      # API Routes (server-side)
-│   │   │   ├── genres/               # GET /api/genres
-│   │   │   ├── search/               # GET /api/search?q=
-│   │   │   ├── seed/                 # POST /api/seed
-│   │   │   ├── subscription/         # POST /api/subscription (Midtrans)
-│   │   │   ├── payment/              # POST /api/payment (webhook)
-│   │   │   ├── watchlist/            # Watchlist CRUD
-│   │   │   ├── trailer/              # GET /api/trailer?tmdb_id=
-│   │   │   ├── movies/               # Movies listing
-│   │   │   ├── stats/                # Stats endpoint
-│   │   │   ├── sql/                  # SQL executor
-│   │   │   └── trending/             # GET /api/trending
-│   │   ├── movie/[id]/page.tsx       # Detail + player film
-│   │   ├── tv/[id]/page.tsx          # Detail + player series
-│   │   ├── category/[slug]/page.tsx  # Category listing
-│   │   ├── genre/[id]/page.tsx       # Genre listing
-│   │   ├── auth/page.tsx             # Login / Register
-│   │   ├── search/page.tsx           # Search results
-│   │   ├── subscribe/page.tsx        # Premium subscribe (4-card)
-│   │   ├── portal/subscribe/page.tsx # Alternate subscribe page
-│   │   ├── layout.tsx                # Root layout
-│   │   └── page.tsx                  # Homepage (client-side)
-│   ├── components/
-│   │   ├── Header.tsx                # Navbar + search + theme/lang
-│   │   ├── MovieCard.tsx             # Poster card with lazy loading
-│   │   ├── DbMovieRow.tsx            # Server-fetched movie row
-│   │   ├── SkeletonCard.tsx          # Loading skeleton
-│   │   ├── DbMovieRowSkeleton.tsx    # Row skeleton
-│   │   ├── Player.tsx                # Movie player (VidSrc + fallback)
-│   │   ├── PlayerTV.tsx              # Series player + episodes
-│   │   ├── PlayerSection.tsx         # Auth-gated player
-│   │   ├── SearchDropdown.tsx        # Live search dropdown
-│   │   ├── AuthForm.tsx              # Auth form
-│   │   ├── AuthModal.tsx             # Auth modal
-│   │   ├── AuthProvider.tsx          # Session context
-│   │   ├── SubscriptionPopup.tsx     # Premium popup card
-│   │   ├── SubscriptionAd.tsx        # Homepage ad banner
-│   │   ├── FloatingNav.tsx           # Floating quick menu
-│   │   ├── WatchlistButton.tsx       # Favorite/Watchlist toggle
-│   │   └── Header.tsx                # Main navigation
-│   ├── hooks/
-│   │   └── useWatchlist.ts           # Watchlist hook
-│   ├── lib/
-│   │   ├── tmdb.ts                   # TMDB API client
-│   │   ├── supabase.ts               # Supabase client
-│   │   ├── supabase-service.ts       # Service-role client
-│   │   └── useUserTier.ts            # Subscription tier hook
-│   └── globals.css                   # Global styles + glassmorphism
-├── Dockerfile                        # Single-stage build
-├── next.config.js                    # Next.js config + security headers
-├── package.json
-├── tsconfig.json
-└── README.md
+TMDB_API_KEY
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+SUPABASE_SERVICE_KEY
+MIDTRANS_SERVER_KEY
+MIDTRANS_CLIENT_KEY
+NEXT_PUBLIC_MIDTRANS_CLIENT_KEY
+NEXT_PUBLIC_SITE_URL
 ```
 
----
-
-## 🔐 Variabel Lingkungan
+## 🔑 Environment Variables
 
 | Variable | Wajib | Deskripsi |
 |----------|-------|-----------|
 | `TMDB_API_KEY` | ✅ | API key dari themoviedb.org |
-| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | URL Project Supabase |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Anon key dari Supabase |
-| `SUPABASE_SERVICE_KEY` | ✅ | Service role key (admin) |
-| `MIDTRANS_SERVER_KEY` | ✅ | Server key Midtrans (sandbox/prod) |
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | URL project Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Anon key Supabase (public) |
+| `SUPABASE_SERVICE_KEY` | ✅ | Service role key (server-only) |
+| `MIDTRANS_SERVER_KEY` | ✅ | Server key Midtrans |
 | `MIDTRANS_CLIENT_KEY` | ✅ | Client key Midtrans |
+| `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY` | ✅ | Client key Midtrans (public) |
+| `NEXT_PUBLIC_SITE_URL` | ❌ | URL situs (default: vercel.app) |
 
----
+## 🗄️ Database
 
-## 🐳 Docker Notes
-
-### Build & Run
-```bash
-docker build -t zenflix-app .
-docker run -d --name zenflix-app --rm -p 3005:3000 --dns 8.8.8.8 --env-file .env zenflix-app
-```
-
-### Cleanup Cache Build
-```bash
-docker builder prune -af
-docker image prune -af
-docker volume prune -f
-```
-
-### DNS Issue di Windows
-Karena WSL2/Docker Desktop kadang gagal resolve domain, tambahkan flag `--dns`:
-```bash
---dns 8.8.8.8
-```
-
-Atau set permanent di `C:\ProgramData\Docker\config\daemon.json`:
-```json
-{ "dns": ["8.8.8.8", "8.8.4.4"] }
-```
-
----
+Jalankan `supabase_schema.sql` di Supabase SQL Editor. Isi tabel:
+`profiles`, `watch_progress`, `watch_history`, `watchlist`, `favorites`, `subscriptions`, `achievements`, `user_achievements`, `user_titles`, `leaderboard`, `ads_config`, `ad_impressions`
 
 ## 🛠️ Tech Stack
 
-<div align="center">
+- **Next.js 16** (App Router, Turbopack, Server Components)
+- **TypeScript**
+- **Tailwind CSS 4**
+- **Supabase** (Auth + PostgreSQL)
+- **TMDB API** (data film/series)
+- **VidSrc** (player streaming multi-mirror)
+- **Midtrans** (payment gateway ID)
+- **Vercel** (deploy)
 
-| Teknologi | Fungsi |
-|-----------|--------|
-| [![Next.js](https://img.shields.io/badge/Next.js-16.2.9-000000?logo=next.js)](https://nextjs.org/) | Framework React (Turbopack) |
-| [![TypeScript](https://img.shields.io/badge/TypeScript-%5E5-3178C6?logo=typescript)](https://www.typescriptlang.org/) | Type safety |
-| [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss)](https://tailwindcss.com/) | Utility-first CSS |
-| [![Supabase](https://img.shields.io/badge/Supabase-FF4438?logo=supabase)](https://supabase.com/) | Auth + Database |
-| [![TMDB](https://img.shields.io/badge/TMDB_API-01D277?logo=themoviedatabase)](https://developers.themoviedb.org/3) | Movie/TV data |
-| [![Docker](https://img.shields.io/badge/Docker-Alpine-2496ED?logo=docker)](https://docker.com/) | Containerization |
-| [![Midtrans](https://img.shields.io/badge/Midtrans_Sandbox-0063A5?logo=midtrans)](https://midtrans.com/) | Payment Gateway |
-| [![Lucide](https://img.shields.io/badge/Lucide_Icons-F56565?logo=lucide)](https://lucide.dev/) | Icons |
+## 📄 License
 
-</div>
-
----
-
-## 🤝 Kontribusi
-
-Pull requests & issue sangat diterima! Untuk perubahan besar, buka issue dulu ya.
-
-1. Fork repo
-2. Buat branch fitur: `git checkout -b feat/keren-banget`
-3. Commit: `git commit -m 'feat: nambah fitur keren'`
-4. Push: `git push origin feat/keren-banget`
-5. Buka Pull Request
-
----
-
-## 📄 Lisensi
-
-MIT © [Alleyaaa](https://github.com/Alleyaaa) — bebas pakai, fork, & modifikasi.
-
----
-
-<p align="center">
-  <sub>Dibangun dengan 🧊 oleh <b>Millen</b> & <a href="https://github.com/NousResearch/hermes-agent">Hermes Agent</a></sub>
-  <br />
-  <sub>⭐ Star repo ini kalau suka! ⭐</sub>
-</p>
-
-<p align="center">
-  <a href="https://github.com/Alleyaaa/ZENFLIX/stargazers">
-    <img src="https://img.shields.io/github/stars/Alleyaaa/ZENFLIX?style=for-the-badge&color=60A5FA" alt="Stars" />
-  </a>
-  <a href="https://github.com/Alleyaaa/ZENFLIX/issues">
-    <img src="https://img.shields.io/github/issues/Alleyaaa/ZENFLIX?style=for-the-badge&color=F87171" alt="Issues" />
-  </a>
-  <a href="https://github.com/Alleyaaa/ZENFLIX/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-22C55E?style=for-the-badge" alt="License" />
-  </a>
-</p>
+MIT © Zenflix — bebas pakai, fork, & modifikasi.

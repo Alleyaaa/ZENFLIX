@@ -14,6 +14,8 @@ const CATEGORIES: Record<string, { label: string; desc: string; tmdbPath: string
   popular: { label: 'Paling Populer', desc: 'Film paling populer saat ini.', tmdbPath: '/movie/popular' },
   top_rated: { label: 'Rating Tertinggi', desc: 'Film dengan rating tertinggi sepanjang masa.', tmdbPath: '/movie/top_rated' },
   upcoming: { label: 'Segera Tayang', desc: 'Film yang akan segera tayang.', tmdbPath: '/movie/upcoming' },
+  series: { label: 'Series TV', desc: 'Koleksi series TV populer dan trending.', tmdbPath: '/tv/popular' },
+  anime: { label: 'Anime', desc: 'Koleksi anime terbaik.', tmdbPath: '/tv/popular' },
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

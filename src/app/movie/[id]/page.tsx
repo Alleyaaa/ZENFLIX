@@ -3,7 +3,8 @@ import type { Metadata } from 'next'
 import Header from '@/components/Header'
 import PlayerSection from '@/components/PlayerSection'
 import MovieCard from '@/components/MovieCard'
-import { tmdbImage, getMovieDetail } from '@/lib/tmdb'
+import AdSlot from '@/components/AdSlot'
+import { tmdbImage, getMovieDetail, getPopular } from '@/lib/tmdb'
 import { Calendar, Clock, Star } from 'lucide-react'
 import Link from 'next/link'
 
@@ -34,14 +35,18 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
   if (isNaN(tmdbId)) notFound()
 
   let movie: any = {}
-  let cast: any[] = []
-  let similar: any[] = []
+    let cast: any[] = []
+    let similar: any[] = []
+    let recommendations: any[] = []
 
-  try {
-    movie = await getMovieDetail(tmdbId)
-    cast = movie.credits?.cast?.slice(0, 12) || []
-    similar = movie.similar?.results?.slice(0, 12) || []
-  } catch {
+    try {
+      movie = await getMovieDetail(tmdbId)
+      cast = movie.credits?.cast?.slice(0, 12) || []
+      similar = movie.similar?.results?.slice(0, 12) || []
+      // Rekomendasi tambahan: film populer sebagai pelengkap
+      const popData = await getPopular()
+      recommendations = popData.results?.slice(0, 10) || []
+    } catch {
     try {
       const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
       const key = process.env.SUPABASE_SERVICE_KEY!
@@ -144,6 +149,21 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
 
         <PlayerSection tmdbId={tmdbId} />
 
+        <AdSlot slot="player_pre_roll" format="leaderboard" />
+
+        {movie.genres?.length > 0 && (
+          <section>
+            <h2 className="text-lg font-semibold mb-3">Genre</h2>
+            <div className="flex flex-wrap gap-2">
+              {movie.genres.map((g: any) => (
+                <Link key={g.id} href={`/genre/${g.id}`} className="px-3 py-1 rounded-full text-xs glass-card hover:bg-[var(--bg-elevated)] transition-all">
+                  {g.name}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         {cast.length > 0 && (
           <section>
             <h2 className="text-lg font-semibold mb-4">Pemeran</h2>
@@ -166,17 +186,33 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
         )}
 
         {similar.length > 0 && (
-          <section>
-            <h2 className="text-lg font-semibold mb-4">Film Serupa</h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
-              {similar.map((m: any) => (
-                <div key={m.id} className="min-w-[140px] w-[140px] shrink-0">
-                  <MovieCard movie={m} />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+                  <section>
+                    <h2 className="text-lg font-semibold mb-4">Film Serupa</h2>
+                    <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
+                      {similar.map((m: any) => (
+                        <div key={m.id} className="min-w-[140px] w-[140px] shrink-0">
+                          <MovieCard movie={m} />
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {/* Rekomendasi "Karena kamu menonton [judul]" */}
+                {recommendations.length > 0 && (
+                  <section>
+                    <h2 className="text-lg font-semibold mb-4">Karena kamu menonton {movie.title}</h2>
+                    <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
+                      {recommendations.map((m: any) => (
+                        <div key={m.id} className="min-w-[140px] w-[140px] shrink-0">
+                          <MovieCard movie={m} />
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                <AdSlot slot="sidebar" format="rect" />
       </main>
     </>
   )

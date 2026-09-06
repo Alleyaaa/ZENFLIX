@@ -1,4 +1,6 @@
+'use client'
 import Link from 'next/link'
+import { useRef, useState } from 'react'
 import { tmdbImage } from '@/lib/tmdb'
 import { Film } from 'lucide-react'
 
@@ -31,28 +33,40 @@ export default function MovieCard({ movie }: { movie: TMDBMovie }) {
   const type = movie.media_type === 'tv' || movie.first_air_date ? 'tv' : 'movie'
   const title = movie.title || movie.name || 'Untitled'
 
+  const [hasPoster, setHasPoster] = useState(!!poster)
+  const posterRef = useRef<HTMLImageElement>(null)
+  const fallbackRef = useRef<HTMLDivElement>(null)
+
+  const handleImageError = () => {
+    if (!hasPoster) return
+    setHasPoster(false)
+    // Trigger re-render to show fallback
+    if (posterRef.current) posterRef.current.style.display = 'none'
+    if (fallbackRef.current) fallbackRef.current.style.display = 'flex'
+  }
+
+  const imageSrc = hasPoster ? poster : null
+
   return (
     <Link href={`/${type}/${movieId}`} className="group block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">
       <div className="aspect-[2/3] rounded-xl overflow-hidden bg-[var(--bg-elevated)] mb-2 relative border border-[var(--border)] shadow-sm group-hover:shadow-lg transition-all group-hover:border-[var(--border-strong)]">
-        {poster ? (
+        {imageSrc ? (
           <img
-            src={poster}
+            ref={posterRef}
+            src={imageSrc}
             alt={title}
             className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
             loading="lazy"
-            onError={(e) => {
-              // Fallback saat poster gagal dimuat (R-38: placeholder jujur)
-              const el = e.currentTarget
-              el.style.display = 'none'
-              el.parentElement?.classList.add('poster-fallback')
-            }}
+            onError={handleImageError}
           />
-        ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[var(--bg-elevated)]">
-            <Film size={28} className="text-[var(--text-tertiary)]" />
-            <span className="text-[11px] text-[var(--text-tertiary)]">Tanpa Poster</span>
-          </div>
-        )}
+        ) : null}
+        <div
+          ref={fallbackRef}
+          className={`absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[var(--bg-elevated)] ${hasPoster ? 'hidden' : 'flex'}`}
+        >
+          <Film size={28} className="text-[var(--text-tertiary)]" />
+          <span className="text-[11px] text-[var(--text-tertiary)]">Tanpa Poster</span>
+        </div>
         {rating && (
           <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-black/70 text-[10px] font-semibold text-[#f5c518] flex items-center gap-0.5">
             ★ {rating}

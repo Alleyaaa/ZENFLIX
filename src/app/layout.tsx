@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./poster-fallback.css";
 import { AuthProvider } from "@/components/AuthProvider";
+import { LanguageProvider } from "@/lib/lang-context";
+import AchievementToast from "@/components/AchievementToast";
 
 const APP_NAME = "Zenflix";
 const APP_DEFAULT_TITLE = "Zenflix — Nonton Film Streaming Premium";
@@ -80,10 +82,13 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-[var(--bg)] text-[var(--text-main)] antialiased">
-        <AuthProvider>
-          {children}
-        </AuthProvider>
-      </body>
+              <LanguageProvider>
+                <AuthProvider>
+                  {children}
+                  <AchievementToast />
+                </AuthProvider>
+              </LanguageProvider>
+            </body>
     </html>
   );
 }
