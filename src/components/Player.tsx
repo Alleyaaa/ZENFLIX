@@ -1,18 +1,22 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { AlertTriangle, RotateCcw, PlayCircle } from 'lucide-react'
+
+// Multiple reliable sources, tried in order
+const SOURCES = [
+  { name: 'VidSrc', url: (id: number) => `https://vidsrc.to/embed/movie/tmdb/${id}` },
+  { name: 'VidSrcMe', url: (id: number) => `https://vidsrcme.org/embed/movie/tmdb/${id}` },
+  { name: 'VidSrcXyz', url: (id: number) => `https://vidsrc.xyz/embed/movie/tmdb/${id}` },
+  { name: 'Embed', url: (id: number) => `https://embed.nicemovie.app/movie/${id}` },
+]
 
 export default function Player({ tmdbId }: { tmdbId: number }) {
   const [mode, setMode] = useState<'loading' | 'playing' | 'error'>('loading')
   const [trailerKey, setTrailerKey] = useState<string | null>(null)
-  const [currentSrc, setCurrentSrc] = useState<string>('')
+  const [currentSrc, setCurrentSrc] = useState<string>(SOURCES[0].url(tmdbId))
+  const [srcIndex, setSrcIndex] = useState(0)
 
-  // Source list in order of preference
-  const sources = [
-    { name: 'vidsrcme', url: (id: number) => `https://vidsrcme.ru/embed/movie/tmdb/${id}` },
-    { name: 'vidsrcxyz', url: (id: number) => `https://vidsrc.xyz/embed/movie/tmdb/${id}` },
-  ]
-
-  // Fetch trailer as fallback
+  // Fetch trailer as final fallback
   useEffect(() => {
     fetch(`/api/trailer?tmdb_id=${tmdbId}`)
       .then(r => r.json())
@@ -22,69 +26,77 @@ export default function Player({ tmdbId }: { tmdbId: number }) {
       .catch(() => {})
   }, [tmdbId])
 
-  // Try to load sources sequentially
-  const trySource = (index: number) => {
-    if (index >= sources.length) {
+  const trySource = useCallback((index: number) => {
+    if (index >= SOURCES.length) {
       setMode('error')
       return
     }
-    const src = sources[index].url(tmdbId)
-    setCurrentSrc(src)
+    setSrcIndex(index)
+    setCurrentSrc(SOURCES[index].url(tmdbId))
     setMode('loading')
-    // Simulate loading delay; actual load will be detected via onLoad/onError
-    setTimeout(() => {
-      // We'll rely on iframe events to detect success/failure
-    }, 300)
-  }
-
-  useEffect(() => {
-    trySource(0)
   }, [tmdbId])
 
+  useEffect(() => {
+    const t = setTimeout(() => trySource(0), 0)
+    return () => clearTimeout(t)
+  }, [tmdbId, trySource])
+
   const handleIframeLoad = () => {
-    // If iframe loads successfully, consider it playing
-    setMode('playing')
+    // Iframe load = embed loaded (may still be "media unavailable" inside provider)
+    setTimeout(() => setMode('playing'), 600)
   }
 
   const handleIframeError = () => {
-    // Try next source
-    const idx = sources.findIndex(s => s.url(tmdbId) === currentSrc)
-    if (idx === -1) trySource(0)
-    else trySource(idx + 1)
+    trySource(srcIndex + 1)
   }
 
-  // If all sources failed and we have trailer, show trailer
-  if (mode === 'error' && trailerKey) {
+  // "Media unavailable" terjadi di dalam iframe provider, kita tidak bisa detect langsung.
+  // Solusi: tombol ganti sumber manual + auto-fallback ke trailer jika semua gagal.
+
+  // Fallback: semua source gagal, pakai trailer YouTube
+  if (mode === 'error') {
+    if (trailerKey) {
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
+            <PlayCircle size={18} className="text-[var(--accent)]" />
+            <span>Player tidak tersedia. Nonton trailer resmi:</span>
+          </div>
+          <div className="aspect-video w-full rounded-xl overflow-hidden bg-black/60 border border-[var(--border)]">
+            <iframe
+              src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0`}
+              className="w-full h-full"
+              allowFullScreen
+              allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+              referrerPolicy="no-referrer"
+              title="Trailer resmi"
+            />
+          </div>
+        </div>
+      )
+    }
     return (
       <div className="space-y-3">
-        <p className="text-xs text-[var(--text-tertiary)] text-center">Player tidak tersedia, beralih ke trailer</p>
-        <div className="aspect-video w-full glass-card rounded-2xl overflow-hidden bg-black/40">
-          <iframe
-            src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1`}
-            className="w-full h-full"
-            allowFullScreen
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-          />
+        <div className="aspect-video w-full rounded-xl overflow-hidden bg-[var(--bg-elevated)] border border-[var(--border)] flex flex-col items-center justify-center gap-3 p-6">
+          <AlertTriangle size={28} className="text-[var(--text-tertiary)]" />
+          <p className="text-sm text-[var(--text-muted)]">Semua sumber player tidak tersedia saat ini.</p>
+          <button
+            onClick={() => trySource(0)}
+            className="px-4 py-2 rounded-lg glass-btn text-sm inline-flex items-center gap-2"
+          >
+            <RotateCcw size={14} /> Coba Lagi
+          </button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-3">
-      <div className="aspect-video w-full glass-card rounded-2xl overflow-hidden relative bg-black/40">
+    <div className="space-y-2">
+      <div className="aspect-video w-full rounded-xl overflow-hidden relative bg-black/60 border border-[var(--border)]">
         {mode === 'loading' && (
-          <div className="absolute inset-0 flex items-center justify-center z-10">
-            <div className="w-8 h-8 border-2 border-white/20 border-t-[var(--accent)] rounded-full animate-spin" />
-          </div>
-        )}
-        {mode === 'error' && !trailerKey && (
-          <div className="absolute inset-0 flex items-center justify-center z-10 flex-col gap-2">
-            <p className="text-sm text-[var(--text-tertiary)]">Player tidak tersedia</p>
-            <button
-              onClick={() => trySource(0)}
-              className="px-4 py-1.5 rounded-lg glass-btn text-xs"
-            >Coba Lagi</button>
+          <div className="absolute inset-0 flex items-center justify-center z-10 bg-[var(--bg)]/60">
+            <div className="w-8 h-8 border-2 border-[var(--border)] border-t-[var(--accent)] rounded-full animate-spin" />
           </div>
         )}
         <iframe
@@ -92,16 +104,37 @@ export default function Player({ tmdbId }: { tmdbId: number }) {
           src={currentSrc}
           className="w-full h-full"
           allowFullScreen
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+          allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+          referrerPolicy="no-referrer"
           onLoad={handleIframeLoad}
           onError={handleIframeError}
+          title={`Pemutar film (${SOURCES[srcIndex]?.name || ''})`}
         />
       </div>
-      {mode === 'playing' && (
-        <p className="text-[10px] text-[var(--text-tertiary)] text-center">
-          Powered by {sources.find(s => s.url(tmdbId) === currentSrc)?.name}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <p className="text-[11px] text-[var(--text-tertiary)]">
+          {mode === 'playing' ? `Memutar via ${SOURCES[srcIndex]?.name || 'sumber'}` : 'Menyiapkan pemutar...'}
         </p>
-      )}
+        {SOURCES.length > 1 && (
+          <div className="flex items-center gap-1">
+            <span className="text-[11px] text-[var(--text-tertiary)] mr-1">Sumber:</span>
+            {SOURCES.map((s, i) => (
+              <button
+                key={s.name}
+                onClick={() => trySource(i)}
+                className={`px-2 py-0.5 rounded text-[11px] transition-colors ${
+                  i === srcIndex
+                    ? 'bg-[var(--accent)] font-semibold'
+                    : 'glass-btn text-[var(--text-muted)]'
+                }`}
+                style={i === srcIndex ? { color: 'var(--accent-contrast)' } : undefined}
+              >
+                {s.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

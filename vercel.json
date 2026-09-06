@@ -1,0 +1,17 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["sin1"],
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key",
+    "SUPABASE_SERVICE_KEY": "@supabase_service_key",
+    "TMDB_API_KEY": "@tmdb_api_key",
+    "MIDTRANS_SERVER_KEY": "@midtrans_server_key",
+    "MIDTRANS_CLIENT_KEY": "@midtrans_client_key",
+    "NEXT_PUBLIC_MIDTRANS_CLIENT_KEY": "@midtrans_client_key",
+    "NEXT_PUBLIC_SITE_URL": "https://zenflix.vercel.app"
+  }
+}

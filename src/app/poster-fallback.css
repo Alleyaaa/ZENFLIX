@@ -1,0 +1,11 @@
+.poster-fallback {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+}
+.poster-fallback::after {
+  content: "Tanpa Poster";
+  font-size: 11px;
+  color: var(--text-tertiary);
+}

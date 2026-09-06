@@ -1,10 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
   images: {
-    domains: ['image.tmdb.org', 'localhost'],
+    remotePatterns: [
+      { protocol: 'https', hostname: 'image.tmdb.org' },
+      { protocol: 'http', hostname: 'localhost' },
+    ],
   },
   async headers() {
     return [
@@ -20,6 +20,4 @@ const nextConfig = {
       },
     ]
   },
-}
-
-module.exports = nextConfig
+};

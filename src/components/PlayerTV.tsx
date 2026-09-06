@@ -44,12 +44,13 @@ export default function PlayerTV({ tmdbId, seasons }: { tmdbId: number, seasons:
 
       <div className="aspect-video w-full glass-card rounded-2xl overflow-hidden relative bg-black/40">
         <iframe
-          key={src}
-          src={src}
-          className="w-full h-full"
-          allowFullScreen
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-        />
+                  key={src}
+                  src={src}
+                  className="w-full h-full"
+                  allowFullScreen
+                  allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                  referrerPolicy="no-referrer"
+                />
       </div>
     </div>
   )

@@ -8,48 +8,68 @@ export async function POST(request: NextRequest) {
   const { user_id, email, name, tier, amount } = body
 
   if (!tier || !amount) {
-    return NextResponse.json({ error: 'Missing tier or amount' }, { status: 400 })
+    return NextResponse.json({ error: 'Tier atau nominal tidak lengkap' }, { status: 400 })
   }
 
-  const orderId = `ZENFLIX_${user_id || 'anon'}_${Date.now()}`
+  // Order ID berisi tier biar webhook bisa update subscription sesuai paket
+  const orderId = `ZENFLIX_${user_id || 'anon'}_${tier}_${Date.now()}`
 
   const payload = {
     transaction_details: { order_id: orderId, gross_amount: amount },
-    item_details: [{ id: tier, price: amount, quantity: 1, name: `ZENFLIX ${tier.toUpperCase()} Subscription` }],
-    customer_details: { email: email || 'guest@zenflix.id', first_name: name || 'Guest', last_name: '', phone: '+628****7890' },
+    item_details: [{ id: tier, price: amount, quantity: 1, name: `Zenflix ${tier.toUpperCase()} (bulanan)` }],
+    customer_details: { email: email || 'guest@zenflix.id', first_name: name || 'Guest', last_name: '' },
     enabled_payments: ['credit_card', 'bank_transfer', 'qris', 'gopay', 'shopeepay'],
-    credit_card: { secure: true }
+    credit_card: { secure: true },
   }
 
   try {
     const res = await fetch('https://app.sandbox.midtrans.com/snap/v1/transactions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Basic ' + Buffer.from(MIDTRANS_SERVER_KEY + ':').toString('base64') },
-      body: JSON.stringify(payload)
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Basic ' + Buffer.from(MIDTRANS_SERVER_KEY + ':').toString('base64'),
+      },
+      body: JSON.stringify(payload),
     })
     const data = await res.json()
-    if (!res.ok) return NextResponse.json({ error: data.status_message || 'Midtrans error' }, { status: res.status })
+    if (!res.ok || data.status_code === '400') {
+      return NextResponse.json({ error: data.status_message || 'Midtrans error' }, { status: res.status })
+    }
     return NextResponse.json(data)
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 })
+  } catch (e: unknown) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : 'Gagal menghubungi Midtrans' },
+      { status: 500 }
+    )
   }
 }
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   if (!authHeader?.startsWith('Bearer ')) return NextResponse.json({ tier: 'free' })
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const serviceKey = process.env.SUPABASE_SERVICE_KEY!
   try {
     const token = authHeader.split(' ')[1]
-    const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, { headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${token}` } })
+    const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: { apikey: serviceKey, Authorization: `Bearer ${token}` },
+    })
     if (!userRes.ok) return NextResponse.json({ tier: 'free' })
+
     const user = await userRes.json()
-    const subRes = await fetch(`${supabaseUrl}/rest/v1/subscriptions?user_id=eq.${user.id}&select=tier,active,expires_at`, { headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` } })
+    const subRes = await fetch(
+      `${supabaseUrl}/rest/v1/subscriptions?user_id=eq.${user.id}&select=tier,active,expires_at&order=created_at.desc&limit=1`,
+      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+    )
     if (!subRes.ok) return NextResponse.json({ tier: 'free' })
+
     const subs = await subRes.json()
     const sub = subs?.[0]
-    if (!sub || !sub.active || (sub.expires_at && new Date(sub.expires_at) < new Date())) return NextResponse.json({ tier: 'free' })
+    if (!sub || !sub.active || (sub.expires_at && new Date(sub.expires_at) < new Date())) {
+      return NextResponse.json({ tier: 'free' })
+    }
     return NextResponse.json({ tier: sub.tier, expires_at: sub.expires_at })
   } catch {
     return NextResponse.json({ tier: 'free' })

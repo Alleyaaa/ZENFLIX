@@ -14,29 +14,29 @@ const TIERS = [
 export default function Subscribe() {
   const [loading, setLoading] = useState<string | null>(null)
 
-  const handleSubscribe = async (tier: any) => {
-    if (tier.price === 0) return
-    setLoading(tier.name)
-    try {
-      const res = await fetch('/api/subscription', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: 'demo', email: 'demo@zenflix.id', name: 'Demo User', tier: tier.name.toLowerCase(), amount: tier.price })
-      })
-      const data = await res.json()
-      if (data.token) {
-        // @ts-ignore
-        window.snap.pay(data.token)
-      } else if (data.redirect_url) {
-        window.location.href = data.redirect_url
-      } else {
-        alert('Error: ' + (data.error || JSON.stringify(data)))
+  const handleSubscribe = async (tier: { name: string; price: number }) => {
+      if (tier.price === 0) return
+      setLoading(tier.name)
+      try {
+        const res = await fetch('/api/subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: 'demo', email: 'demo@zenflix.id', name: 'Demo User', tier: tier.name.toLowerCase(), amount: tier.price })
+        })
+        const data = await res.json()
+        if (data.token) {
+          // @ts-expect-error - Midtrans Snap loaded globally
+          window.snap.pay(data.token)
+        } else if (data.redirect_url) {
+          window.location.assign(data.redirect_url)
+        } else {
+          alert('Error: ' + (data.error || JSON.stringify(data)))
+        }
+      } catch (e: unknown) {
+        alert('Error: ' + (e instanceof Error ? e.message : String(e)))
       }
-    } catch (e: any) {
-      alert('Error: ' + e.message)
+      setLoading(null)
     }
-    setLoading(null)
-  }
 
   return (
     <>

@@ -1,10 +1,33 @@
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import Header from '@/components/Header'
 import PlayerSection from '@/components/PlayerSection'
 import MovieCard from '@/components/MovieCard'
 import { tmdbImage, getMovieDetail } from '@/lib/tmdb'
 import { Calendar, Clock, Star } from 'lucide-react'
 import Link from 'next/link'
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const tmdbId = parseInt((await params).id)
+  if (isNaN(tmdbId)) return {}
+  try {
+    const movie: any = await getMovieDetail(tmdbId)
+    const title = movie.title || 'Film'
+    const year = movie.release_date?.split('-')[0] || ''
+    return {
+      title: `${title} (${year}) | Zenflix`,
+      description: movie.overview?.slice(0, 160) || `Nonton film ${title} di Zenflix.`,
+      openGraph: {
+        title: `${title} (${year}) | Zenflix`,
+        description: movie.overview?.slice(0, 160),
+        type: 'video.movie',
+        images: movie.poster_path ? [tmdbImage(movie.poster_path, 'w500')] : undefined,
+      },
+    }
+  } catch {
+    return {}
+  }
+}
 
 export default async function MovieDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const tmdbId = parseInt((await params).id)
@@ -22,9 +45,10 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
     try {
       const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
       const key = process.env.SUPABASE_SERVICE_KEY!
-      const hdrs = {}
-      hdrs['apikey'] = key
-      hdrs['Authorization'] = 'Bearer ' + key
+      const hdrs: Record<string, string> = {
+        'apikey': key,
+        'Authorization': 'Bearer ' + key,
+      }
       const r = await fetch(url + '/rest/v1/movies?select=*&tmdb_id=eq.' + tmdbId + '&limit=1', { headers: hdrs })
       const rows = await r.json()
       if (rows?.[0]) {
@@ -42,13 +66,31 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
     } catch {}
   }
 
+  if (!movie.title) notFound()
+
   const poster = movie.poster_path ? tmdbImage(movie.poster_path, 'w500') : null
   const backdrop = movie.backdrop_path ? tmdbImage(movie.backdrop_path, 'original') : null
 
+  // JSON-LD structured data (SEO)
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Movie',
+    name: movie.title,
+    datePublished: movie.release_date || undefined,
+    image: poster || undefined,
+    description: movie.overview || undefined,
+    aggregateRating: movie.vote_average ? {
+      '@type': 'AggregateRating',
+      ratingValue: movie.vote_average.toFixed(1),
+      bestRating: '10',
+    } : undefined,
+  }
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Header />
-      <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden">
+      <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden cinema-backdrop">
         {backdrop ? (
           <img src={backdrop} alt="" className="w-full h-full object-cover" />
         ) : (
@@ -60,29 +102,29 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
       <div className="max-w-[1400px] mx-auto px-4 -mt-40 relative z-10">
         <div className="flex gap-6 items-end">
           {poster && (
-            <div className="w-48 shrink-0 hidden md:block rounded-xl overflow-hidden shadow-2xl border border-white/10">
+            <div className="w-48 shrink-0 hidden md:block rounded-xl overflow-hidden shadow-2xl border border-[var(--border)]">
               <img src={poster} alt={movie.title} className="w-full" />
             </div>
           )}
           <div className="flex-1 min-w-0 py-4">
-            <h1 className="text-3xl md:text-5xl font-bold mb-3 gradient-text">{movie.title || 'Unknown'}</h1>
+            <h1 className="text-3xl md:text-5xl font-bold mb-3">{movie.title || 'Unknown'}</h1>
             <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--text-muted)] mb-4">
               {movie.release_date && (
                 <span className="flex items-center gap-1"><Calendar size={14} />{movie.release_date.split('-')[0]}</span>
               )}
               {movie.runtime > 0 && (
-                <span className="flex items-center gap-1"><Clock size={14} />{Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m</span>
+                <span className="flex items-center gap-1"><Clock size={14} />{Math.floor(movie.runtime / 60)}j {movie.runtime % 60}m</span>
               )}
               {movie.vote_average > 0 && (
                 <span className="flex items-center gap-1 glass-card px-2 py-0.5 rounded-full">
-                  <Star size={12} className="text-yellow-400 fill-yellow-400" />{movie.vote_average.toFixed(1)}
+                  <Star size={12} className="text-[var(--accent)] fill-[var(--accent)]" />{movie.vote_average.toFixed(1)}
                 </span>
               )}
             </div>
             {movie.genres?.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {movie.genres.map((g: any) => (
-                  <Link key={g.id} href={`/genre/${g.id}`} className="px-3 py-1 rounded-full text-xs glass-card hover:bg-white/10 transition-all">
+                  <Link key={g.id} href={`/genre/${g.id}`} className="px-3 py-1 rounded-full text-xs glass-card hover:bg-[var(--bg-elevated)] transition-all">
                     {g.name}
                   </Link>
                 ))}

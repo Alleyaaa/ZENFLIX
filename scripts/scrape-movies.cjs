@@ -1,14 +1,10 @@
-const { createClient } = require('@supabase/supabase-js')
-const fetch = require('node-fetch')
+import { createClient } from '@supabase/supabase-js';
+import fetch from 'node-fetch';
+import dotenv from 'dotenv';
+import { writeFileSync } from 'fs';
+import { resolve } from 'path';
 
-const SUPABASE_URL = process.env.SUPABASE_URL.replace('"', '').replace('"', '')
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY.replace('"', '').replace('"', '')
-const TMDB_KEY = process.env.TMDB_API_KEY.replace('"', '').replace('"', '')
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-
-const TMDB_BASE = 'https://api.themoviedb.org/3'
-
+dotenv.config();
 async function seed() {
   let seeded = 0, errors = 0
   for (let page = 1; page <= 5; page++) {

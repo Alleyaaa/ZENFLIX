@@ -1,98 +1,139 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════
+   ZENFLIX DESIGN SYSTEM
+   Identity: streaming sinematik, tegas, modern
+   Palette: dark cinema (#0b0f1a) + emas sinematik (#f5c518) sebagai 1 accent
+   Typography: system-ui stack (tanpa font AI default)
+   Dials: ENERGY 2 / RHYTHM 2 / MOTION 1
+   ═══════════════════════════════════════════════ */
+
 @theme {
-  --color-accent: #38bdf8;
+  --color-accent: #f5c518;
 }
 
-/* ═══════════════ DARK THEME ═══════════════ */
+/* ─────────── DARK (default, cinematic) ─────────── */
 :root,
 [data-theme="dark"] {
-  --bg: #0c1220;
-  --bg-surface: rgba(30, 41, 59, 0.4);
-  --bg-elevated: rgba(30, 41, 59, 0.7);
-  --border: rgba(255, 255, 255, 0.1);
-  --text-main: #f1f5f9;
-  --text-muted: #94a3b8;
-  --text-tertiary: #64748b;
-  --text-secondary: #cbd5e1;
-  --accent: #38bdf8;
-  --gradient-from: #f1f5f9;
-  --gradient-to: #94a3b8;
+  --bg: #0b0f1a;
+  --bg-surface: #131a2b;
+  --bg-elevated: #1a2338;
+  --bg-overlay: rgba(11, 15, 26, 0.88);
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text-main: #f2f4f8;
+  --text-muted: #a7b0c2;
+  --text-tertiary: #6b7488;
+  --accent: #f5c518;
+  --accent-contrast: #0b0f1a;
+  --accent-dim: rgba(245, 197, 24, 0.12);
+  --danger: #ef4444;
+  --success: #22c55e;
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
 }
 
-/* ═══════════════ LIGHT THEME ═══════════════ */
+/* ─────────── LIGHT (tetap kontras, tidak "hancur") ─────────── */
 [data-theme="light"] {
-  --bg: #f8fafc;
-  --bg-surface: rgba(255, 255, 255, 0.8);
-  --bg-elevated: rgba(255, 255, 255, 0.9);
-  --border: rgba(0, 0, 0, 0.1);
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-tertiary: #94a3b8;
-  --text-secondary: #475569;
-  --accent: #38bdf8;
-  --gradient-from: #0f172a;
-  --gradient-to: #64748b;
+  --bg: #f6f7f9;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f1f3f7;
+  --bg-overlay: rgba(255, 255, 255, 0.92);
+  --border: rgba(15, 23, 42, 0.1);
+  --border-strong: rgba(15, 23, 42, 0.2);
+  --text-main: #101828;
+  --text-muted: #475467;
+  --text-tertiary: #98a2b3;
+  --accent: #b45309;
+  --accent-contrast: #ffffff;
+  --accent-dim: rgba(180, 83, 9, 0.1);
+  --danger: #dc2626;
+  --success: #16a34a;
+  --card-shadow: 0 2px 8px rgba(16, 24, 40, 0.08);
 }
 
 body {
   background: var(--bg);
   color: var(--text-main);
-  transition: background 0.3s ease, color 0.3s ease;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  transition: background 0.25s ease, color 0.25s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hero & img di light mode: tetap gelap biar kontras (R-25) */
+[data-theme="light"] .cinema-hero,
+[data-theme="light"] .cinema-backdrop {
+  color: #f2f4f8;
+}
+[data-theme="light"] .cinema-hero h1,
+[data-theme="light"] .cinema-hero p {
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
 }
 
 @layer components {
+  /* Navbar */
   .glass-nav {
-    background: color-mix(in srgb, var(--bg) 85%, transparent);
-    backdrop-filter: blur(12px);
+    background: var(--bg-overlay);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--border);
   }
+
+  /* Card dasar: flat + border, shadow tipis (R-12) */
   .glass-card {
     background: var(--bg-surface);
     border: 1px solid var(--border);
-    transition: all 0.2s ease;
+    border-radius: var(--radius-md);
   }
   .glass-card:hover {
-    border-color: var(--accent);
-    background: var(--bg-elevated);
+    border-color: var(--border-strong);
   }
+
+  /* Tombol outline */
   .glass-btn {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-surface);
     border: 1px solid var(--border);
-    color: var(--text-muted);
+    color: var(--text-main);
+    border-radius: var(--radius-md);
+    transition: border-color 0.2s, background 0.2s;
   }
   .glass-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-main);
+    border-color: var(--border-strong);
+    background: var(--bg-elevated);
   }
-  .glass-ios {
-    background: var(--bg-surface);
-    backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-  }
+
+  /* Tombol utama: aksen emas, teks gelap (kontras kuat) */
   .btn-primary {
     background: var(--accent);
-    color: #0c1220;
+    color: var(--accent-contrast);
     font-weight: 600;
-    border-radius: 9999px;
-    padding: 0.5rem 1.25rem;
-    font-size: 0.875rem;
-    transition: opacity 0.2s;
+    border-radius: var(--radius-md);
+    padding: 0.55rem 1.4rem;
+    font-size: 0.9rem;
+    transition: opacity 0.2s, transform 0.15s;
   }
   .btn-primary:hover {
     opacity: 0.9;
   }
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  /* Gradient text: hanya di heading hero (bukan di semua teks) */
   .gradient-text {
-    background: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
+    background: linear-gradient(135deg, var(--accent), #fbbf24);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
-  .gradient-btn {
-    background: linear-gradient(135deg, var(--accent), #6366f1);
-    color: white;
+  /* Light mode: gradient emas terlalu terang, ganti solid */
+  [data-theme="light"] .gradient-text {
+    background: none;
+    -webkit-text-fill-color: var(--accent);
   }
+
   .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -100,13 +141,48 @@ body {
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
+  /* Focus visible: wajib (R-32) */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Skeleton */
+  .skeleton {
+    background: var(--bg-elevated);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    position: relative;
+  }
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+    animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer {
+    100% { transform: translateX(100%); }
+  }
 }
 
 @layer utilities {
   .glass-panel {
     background: var(--bg-surface);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--card-shadow);
+  }
+  .text-gradient-accent {
+    background: linear-gradient(135deg, var(--accent), #fbbf24);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 }

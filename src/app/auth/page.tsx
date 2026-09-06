@@ -1,23 +1,40 @@
 import { redirect } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import AuthForm from '@/components/AuthForm'
 
 export default async function AuthPage() {
-  const { data: { user } } = await supabase.auth.getUser()
+  const cookieStore = await cookies()
+
+  // Server-side Supabase client utk cek session (pakai cookies)
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+  let user: { id: string } | null = null
+  try {
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll: () => cookieStore.getAll(),
+        setAll: () => {},
+      },
+    })
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {
+    user = null
+  }
+
   if (user) redirect('/')
 
   return (
-    <div className="auth-gradient min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="fixed top-4 left-6 z-50 text-xl font-black tracking-tighter gradient-text">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="fixed top-4 left-6 z-50 text-xl font-black tracking-tighter">
         ZENFLIX
       </div>
-      <div className="absolute top-1/4 -left-20 w-72 h-72 bg-blue-500/10 rounded-full blur-[100px]" />
-      <div className="absolute bottom-1/4 -right-20 w-72 h-72 bg-cyan-500/10 rounded-full blur-[100px]" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-sky-500/5 rounded-full blur-[120px]" />
-
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <p className="text-sm text-[var(--text-secondary)]">Sign in to start watching</p>
+          <h1 className="text-3xl font-bold mb-2">Selamat Datang di Zenflix</h1>
+          <p className="text-sm text-[var(--text-muted)]">Masuk atau buat akun untuk mulai menonton</p>
         </div>
         <AuthForm />
       </div>

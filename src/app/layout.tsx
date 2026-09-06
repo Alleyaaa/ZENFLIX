@@ -1,10 +1,61 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./poster-fallback.css";
 import { AuthProvider } from "@/components/AuthProvider";
 
+const APP_NAME = "Zenflix";
+const APP_DEFAULT_TITLE = "Zenflix — Nonton Film Streaming Premium";
+const APP_DESCRIPTION = "Streaming film dan series terbaru di Zenflix. Koleksi film bioskop, series, anime, dan drama berkualitas HD. Nonton gratis, tanpa buffering.";
+
 export const metadata: Metadata = {
-  title: "Zenflix — Nonton Film Streaming Premium",
-  description: "Nonton film streaming terbaru di Zenflix. Koleksi film bioskop, series, dan drama terbaik dengan kualitas HD.",
+  applicationName: APP_NAME,
+  title: {
+    default: APP_DEFAULT_TITLE,
+    template: "%s",
+  },
+  description: APP_DESCRIPTION,
+  manifest: "/manifest.webmanifest",
+  keywords: ["nonton film", "streaming film", "film online", "nonton series", "film indonesia", "bioskop online", "zenflix", "nonton gratis"],
+  authors: [{ name: "Zenflix" }],
+  creator: "Zenflix",
+  publisher: "Zenflix",
+  formatDetection: { email: false, address: false, telephone: false },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://zenflix.vercel.app"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "id_ID",
+    url: "/",
+    siteName: APP_NAME,
+    title: APP_DEFAULT_TITLE,
+    description: APP_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: APP_DEFAULT_TITLE,
+    description: APP_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#0b0f1a" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f7f9" },
+  ],
 };
 
 export default function RootLayout({
