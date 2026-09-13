@@ -22,9 +22,9 @@ const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 // Host yang diizinkan utk di-proxy (majorplay = IDLIX internal, vidsrc mirrors)
 const ALLOWED_HOSTS = new Set([
   'majorplay.net', 'e2e.majorplay.net', 'e1.majorplay.net', 'e3.majorplay.net',
-  'vidsrcme.ru', 'vidsrc.to', 'vidsrc.me', 'multiembed.mov',
   's1.majorplay.net', 's2.majorplay.net', 's3.majorplay.net', 's4.majorplay.net',
   'vz-*.majorplay.net', 'z4.majorplay.net', 'z6.majorplay.net', 'z8.majorplay.net',
+  'vidsrcme.ru', 'vidsrc.to', 'vidsrc.me', 'multiembed.mov',
 ])
 
 function isAllowed(url: string): boolean {
@@ -34,6 +34,11 @@ function isAllowed(url: string): boolean {
     if (ALLOWED_HOSTS.has(u.hostname)) return true
     // vidsrc mirrors
     if (['vidsrcme.ru', 'vidsrc.to', 'vidsrc.me', 'multiembed.mov'].includes(u.hostname)) return true
+    // CDN IDLIX/majorplay (berbagai domain, berakhiran path /v/...)
+    // Allow semua host yang dipakai stream segments IDLIX (ruangskill, dll)
+    if (u.pathname.includes('/v/') && (u.protocol === 'https:')) {
+      return true
+    }
     return false
   } catch {
     return false
