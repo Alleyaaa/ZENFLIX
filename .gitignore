@@ -25,4 +25,5 @@ idlix-api.tar.gz
 # IDLIX infra di-repo (untuk Render deploy) — TAPI folder hasil build lokal tidak
 infrastructure/stealth/tmp/
 infrastructure/stealth/node_modules/
-infrastructure/idlix-api/node_modules/
+infrastructure/idlix-api/node_modules/idlix.json
+vurl.txt
