@@ -81,20 +81,27 @@ export default function HlsPlayer({ tmdbId, mediaType = 'movie', season = 1, epi
           const idlixRes = await fetch(`/api/idlix?${params.toString()}`)
           const idlixData = await idlixRes.json()
 
-          if (idlixRes.ok && idlixData?.success && idlixData?.streamUrl) {
+          if (idlixRes.ok && idlixData?.success && (idlixData?.playlists?.length || idlixData?.streamUrl)) {
             if (cancelled) return
             setSubtitles(idlixData.subtitles || [])
-            setQualities([{ resolution: idlixData.maxHeight ? `${idlixData.maxHeight}p` : 'auto', height: idlixData.maxHeight || 0, url: idlixData.streamUrl }])
+            // Pakai playlists (dari parse config) kalau ada; fallback ke streamUrl
+            const playlists = idlixData.playlists?.length
+              ? idlixData.playlists
+              : [{ resolution: idlixData.maxHeight ? `${idlixData.maxHeight}p` : 'auto', height: idlixData.maxHeight || 0, url: idlixData.streamUrl }]
+            setQualities(playlists)
             setActiveQuality('auto')
 
             const video = videoRef.current
             if (!video) return
 
+            // Pilih kualitas tertinggi sebagai default (auto → hls.js pilih sendiri)
+            const bestUrl = playlists[0]?.url || idlixData.streamUrl
+
             if (Hls.isSupported()) {
               const hls = new Hls({ enableWorker: true, autoStartLoad: true, startLevel: -1 })
               hlsRef.current = hls
               // Proxy via server: client ga pernah lihat streamUrl asli (majorplay.net)
-              const proxiedUrl = `/api/hls-proxy?url=${encodeURIComponent(idlixData.streamUrl)}`
+              const proxiedUrl = `/api/hls-proxy?url=${encodeURIComponent(bestUrl)}`
               hls.loadSource(proxiedUrl)
               hls.attachMedia(video)
               hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -115,7 +122,7 @@ export default function HlsPlayer({ tmdbId, mediaType = 'movie', season = 1, epi
               })
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
               // Safari native HLS
-              video.src = idlixData.streamUrl
+              video.src = `/api/hls-proxy?url=${encodeURIComponent(bestUrl)}`
               video.addEventListener('loadedmetadata', () => { if (!cancelled) setStatus('ready') })
             } else {
               setStatus('error'); setError('Browser tidak mendukung HLS.')
