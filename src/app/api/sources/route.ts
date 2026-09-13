@@ -1,18 +1,13 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 const TMDB_KEY = process.env.TMDB_API_KEY
 
-// Multi-source embed — kombinasi provider biar dapet kualitas terbaik & fallback banyak
-// - VidSrc (vidsrcme.ru / vidsrc.to / vidsrc.me): player populer, support 1080p
-// - MultiEmbed (multiembed.mov): aggregator multi-player
-//
-// SEMUA URL source DI-SEMBUNYIKAN dari client:
-// client hanya menerima { index, name, proxyPath } — iframe src = /api/stream-proxy?ch=N
-// Browser/network tab tidak pernah melihat domain vidsrc/dll.
+// Multi-source embed — provider langsung (Vidsrc, MultiEmbed) — PASTI play di iframe
 const MIRRORS: { name: string; host: string }[] = [
   { name: 'vidsrcme', host: 'https://vidsrcme.ru' },
   { name: 'vidsrcto', host: 'https://vidsrc.to' },
   { name: 'vidsrcme2', host: 'https://vidsrc.me' },
+  { name: 'multiembed', host: 'https://multiembed.mov' },
 ]
 
 export async function GET(request: Request) {
@@ -26,25 +21,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Missing id' }, { status: 400 })
   }
 
-  // ─── Trailer resmi dari TMDB (fallback terakhir) ───
-  let trailerKey: string | null = null
-  try {
-    const endpoint = type === 'tv' ? `/tv/${tmdbId}/videos?` : `/movie/${tmdbId}/videos?`
-    const res = await fetch(`https://api.themoviedb.org/3${endpoint}api_key=${TMDB_KEY}&language=en-US`, {
-      next: { revalidate: 86400 },
-      signal: AbortSignal.timeout(8000),
-    })
-    if (res.ok) {
-      const data = await res.json()
-      const vids = (data.results || []) as any[]
-      const trailer = vids.find((v: any) => v.type === 'Trailer' && v.site === 'YouTube')
-        || vids.find((v: any) => v.type === 'Teaser' && v.site === 'YouTube')
-        || vids.find((v: any) => v.site === 'YouTube')
-      trailerKey = trailer?.key || null
-    }
-  } catch {}
-
-  // ─── IMDB ID dari TMDB ───
+  // ─── IMDB ID (VidSrc prefer IMDB kalau ada) ───
   let imdbId: string | null = null
   try {
     const endpoint = type === 'tv' ? `/tv/${tmdbId}/external_ids?` : `/movie/${tmdbId}/external_ids?`
@@ -65,18 +42,20 @@ export async function GET(request: Request) {
       ? `${host}/embed/tv/${id}/${season}/${episode}?autoplay=1&autonext=1&ds_lang=id`
       : `${host}/embed/movie/${id}?autoplay=1&ds_lang=id`
 
-  // MultiEmbed (format yang benar: ?video_id= & tmdb=1)
   const buildMultiEmbedUrl = () =>
     type === 'tv'
       ? `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`
       : `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`
 
-  // Channel: { index, name } — URL ASLI DIPROSES DI SERVER via /api/stream-proxy
   const channels = [
-    { index: 1, name: MIRRORS[0].name },
-    { index: 2, name: MIRRORS[1].name },
-    { index: 3, name: 'multiembed' },
-    { index: 4, name: MIRRORS[2].name },
+    // Ch1: VidSrc utama (IMDB kalau ada)
+    { index: 1, url: buildVidSrcUrl(MIRRORS[0].host, movieIdForImdb || tmdbId), name: MIRRORS[0].name },
+    // Ch2: VidSrc.to (pakai TMDB)
+    { index: 2, url: buildVidSrcUrl(MIRRORS[1].host, tmdbId), name: MIRRORS[1].name },
+    // Ch3: MultiEmbed (aggregator, pakai param tmdb=1 & season/episode)
+    { index: 3, url: buildMultiEmbedUrl(), name: 'multiembed' },
+    // Ch4: VidSrc.me (IMDB fallback)
+    { index: 4, url: buildVidSrcUrl(MIRRORS[2].host, movieIdForImdb || tmdbId), name: MIRRORS[2].name },
   ]
 
   return NextResponse.json({
@@ -85,10 +64,7 @@ export async function GET(request: Request) {
     type,
     season,
     episode,
-    trailerKey,
     channels,
     totalChannels: channels.length,
-    // Client hanya tahu path internal — bukan URL source asli
-    streamProxy: `/api/stream-proxy?id=${tmdbId}&type=${type}&season=${season}&episode=${episode}`,
   })
 }

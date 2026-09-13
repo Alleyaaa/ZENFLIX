@@ -6,6 +6,7 @@ import { AlertTriangle, RotateCcw, Loader2 } from 'lucide-react'
 interface SourceChannel {
   index: number
   name: string
+  url?: string
 }
 
 interface PlayerProps {
@@ -175,8 +176,17 @@ export default function Player({ tmdbId, mediaType = 'movie', season = 1, episod
     setMode('loading')
   }
 
-  // ─── Build iframe URL: internal path (hidden source) ───
-  const iframeSrc = `/api/stream-proxy?id=${tmdbId}&type=${mediaType}&season=${season}&episode=${episode}&ch=${currentChannel}`
+  // ─── Build iframe URL: LANGSUNG ke provider (anti-proxy detect → PASTI play) ───
+    // URL source didapat dari /api/sources (server resolve imdb/tmdb ID)
+    const iframeSrc = (() => {
+      const channel = channels.find(c => c.index === currentChannel)
+      // Kalau URL langsung tersedia → pakai itu (anti-proxy detect, kontrol normal)
+      if (channel && 'url' in channel && (channel as any).url) {
+        return (channel as any).url
+      }
+      // Fallback: proxy internal (kalau channel tanpa url)
+      return `/api/stream-proxy?id=${tmdbId}&type=${mediaType}&season=${season}&episode=${episode}&ch=${currentChannel}`
+    })()
 
   // ─── Trailer fallback ───
   if (mode === 'error') {
@@ -213,28 +223,28 @@ export default function Player({ tmdbId, mediaType = 'movie', season = 1, episod
   }
 
   return (
-    <div className="space-y-2">
-      {/* Video Player: iframe internal (source tersembunyi) */}
-      <div className="aspect-video w-full rounded-xl overflow-hidden relative bg-black/70 border border-[var(--border)]">
-        {mode === 'loading' && (
-          <div className="absolute inset-0 flex items-center justify-center z-10 bg-[var(--bg)]/60 pointer-events-none">
-            <div className="text-center">
-              <div className="w-10 h-10 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-xs text-[var(--text-muted)]">Menyiapkan Channel {currentChannel}...</p>
+      <div className="space-y-2">
+        {/* Video Player: iframe langsung ke provider */}
+        <div className="aspect-video w-full rounded-xl overflow-hidden relative bg-black/70 border border-[var(--border)]">
+          {mode === 'loading' && (
+            <div className="absolute inset-0 flex items-center justify-center z-10 bg-[var(--bg)]/60 pointer-events-none">
+              <div className="text-center">
+                <div className="w-10 h-10 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-xs text-[var(--text-muted)]">Menyiapkan Channel {currentChannel}...</p>
+              </div>
             </div>
-          </div>
-        )}
-        <iframe
-          key={`${currentChannel}-${tmdbId}`}
-          src={iframeSrc}
-          className="w-full h-full"
-          allowFullScreen
-          allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-          referrerPolicy="no-referrer"
-          onLoad={() => setMode('playing')}
-          title={`Pemutar Channel ${currentChannel}`}
-        />
-      </div>
+          )}
+          <iframe
+            key={`${currentChannel}-${tmdbId}`}
+            src={iframeSrc}
+            className="w-full h-full"
+            allowFullScreen
+            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+            referrerPolicy="no-referrer"
+            onLoad={() => setMode('playing')}
+            title={`Pemutar Channel ${currentChannel}`}
+          />
+        </div>
 
       {/* Channel picker */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
