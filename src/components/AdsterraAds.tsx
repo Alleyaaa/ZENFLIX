@@ -58,7 +58,7 @@ export function AdBanner({ format = '300x250', className = '' }: { format?: '300
         scrolling="no"
         frameBorder="0"
         style={{ border: 0, overflow: 'hidden' }}
-        loading="lazy"
+        loading="eager"
         sandbox="allow-scripts allow-same-origin"
       />
     </div>
