@@ -3,43 +3,25 @@ import { NextRequest, NextResponse } from 'next/server'
 /**
  * HLS Proxy — PROXY SEMUA STREAM (manifest + segments) lewat server Zenflix.
  *
- * Kenapa ini penting:
- * - Client HANYA lihat /api/hls-proxy?url=... → source asli (majorplay/vidsrc) TIDAK pernah
- *   muncul di network tab / inspect element → SEAMLESS & source tersembunyi total.
- * - Video element native (hls.js) → kontrol play/pause/seek/volume JALAN normal.
- * - Kualitas bisa dipilih (hls.js levels).
+ * FIX: Deteksi m3u8 dari ISI RESPONSE (#EXTM3U), bukan dari extension URL.
+ * IDLIX varianta URL = data-xxx.json (yang isinya m3u8) → ini yang bikin gagal.
  *
- * Alur:
- * 1. Client minta /api/hls-proxy?url=<master.m3u8>
- * 2. Server fetch playlist, rewrite semua URL (variant + segment) → /api/hls-proxy?url=...
- * 3. Server proxy segment (.ts/.m4s) → client ga pernah lihat domain asli
- *
- * Whitelist host ketat (anti-SSRF).
+ * Client HANYA lihat /api/hls-proxy?url=... → source asli TIDAK pernah muncul.
+ * Video element native (hls.js) → kontrol play/pause/seek/volume JALAN normal.
  */
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36'
 
-// Host yang diizinkan utk di-proxy (majorplay = IDLIX internal, vidsrc mirrors)
-const ALLOWED_HOSTS = new Set([
-  'majorplay.net', 'e2e.majorplay.net', 'e1.majorplay.net', 'e3.majorplay.net',
-  's1.majorplay.net', 's2.majorplay.net', 's3.majorplay.net', 's4.majorplay.net',
-  'vz-*.majorplay.net', 'z4.majorplay.net', 'z6.majorplay.net', 'z8.majorplay.net',
-  'vidsrcme.ru', 'vidsrc.to', 'vidsrc.me', 'multiembed.mov',
-])
+// Host stream yang diizinkan (majorplay = IDLIX, ruangskill = CDN segment, vidsrc mirrors)
+const ALLOWED_HOST_SUFFIXES = ['.majorplay.net', '.ruangskill.space', '.vidsrcme.ru', '.vidsrc.to', '.vidsrc.me', '.multiembed.mov']
+const ALLOWED_EXACT = new Set(['majorplay.net', 'ruangskill.space', 'vidsrcme.ru', 'vidsrc.to', 'vidsrc.me', 'multiembed.mov'])
 
 function isAllowed(url: string): boolean {
   try {
     const u = new URL(url)
-    if (u.hostname === 'majorplay.net' || u.hostname.endsWith('.majorplay.net')) return true
-    if (ALLOWED_HOSTS.has(u.hostname)) return true
-    // vidsrc mirrors
-    if (['vidsrcme.ru', 'vidsrc.to', 'vidsrc.me', 'multiembed.mov'].includes(u.hostname)) return true
-    // CDN IDLIX/majorplay (berbagai domain, berakhiran path /v/...)
-    // Allow semua host yang dipakai stream segments IDLIX (ruangskill, dll)
-    if (u.pathname.includes('/v/') && (u.protocol === 'https:')) {
-      return true
-    }
-    return false
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return false
+    if (ALLOWED_EXACT.has(u.hostname)) return true
+    return ALLOWED_HOST_SUFFIXES.some((s) => u.hostname.endsWith(s))
   } catch {
     return false
   }
@@ -47,9 +29,10 @@ function isAllowed(url: string): boolean {
 
 // Rewrite URL dalam playlist → proxy path
 function rewriteUrl(rawUrl: string, baseUrl: string): string {
+  if (!rawUrl.trim() || rawUrl.trim().startsWith('#')) return rawUrl
   let abs: string
   try {
-    abs = new URL(rawUrl, baseUrl).toString()
+    abs = new URL(rawUrl.trim(), baseUrl).toString()
   } catch {
     return rawUrl
   }
@@ -75,25 +58,32 @@ export async function GET(request: NextRequest) {
         'Accept': '*/*',
         'Referer': 'https://zenflix-ten.vercel.app/',
       },
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(20000),
     })
 
     if (!res.ok) {
       return NextResponse.json({ error: `Upstream ${res.status}` }, { status: 502 })
     }
 
+    const body = await res.arrayBuffer()
     const contentType = res.headers.get('content-type') || ''
-    // ─── Kalau M3U8 (playlist) → rewrite URL biar semua lewat proxy ───
-    if (contentType.includes('mpegurl') || contentType.includes('application/x-mpegurl') || target.endsWith('.m3u8')) {
-      const text = await res.text()
+    const isText = contentType.includes('text') || contentType.includes('mpegurl') || contentType.includes('json') || contentType.includes('javascript')
+
+    // Deteksi m3u8: cek AWALAN body #EXTM3U (bukan dari extension!)
+    const head = Buffer.from(body.slice(0, 100)).toString('utf-8')
+    if (head.startsWith('#EXTM3U') || head.startsWith('#EXT-X')) {
+      const text = Buffer.from(body).toString('utf-8')
       const base = target.split('/').slice(0, -1).join('/') + '/'
 
-      const rewritten = text.split('\n').map((line) => {
-        const trimmed = line.trim()
-        if (!trimmed || trimmed.startsWith('#')) return line
-        // Rewrite URL (variant / segment / key)
-        return rewriteUrl(trimmed, base)
-      }).join('\n')
+      const rewritten = text
+        .split('\n')
+        .map((line) => {
+          const trimmed = line.trim()
+          if (!trimmed || trimmed.startsWith('#')) return line
+          // Rewrite URL (variant / segment / key)
+          return rewriteUrl(trimmed, base)
+        })
+        .join('\n')
 
       return new NextResponse(rewritten, {
         status: 200,
@@ -106,15 +96,14 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // ─── Kalau segment (ts/m4s/key) → passthrough stream ───
-    return new Response(res.body, {
+    // Kalau bukan m3u8 → passthrough binary (segment .ts/.m4s/key)
+    return new Response(body, {
       status: 200,
       headers: {
         'Content-Type': contentType || 'application/octet-stream',
         'Cache-Control': 'private, max-age=3600',
         'Access-Control-Allow-Origin': '*',
         'Cross-Origin-Resource-Policy': 'cross-origin',
-        'Content-Length': res.headers.get('content-length') || '',
       },
     })
   } catch {
