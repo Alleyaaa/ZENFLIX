@@ -11,7 +11,7 @@ src/middleware.ts
 .vercel
 .env*
 
-# Build artifacts & temp
+# Build artifacts & temp (jangan commit)
 vp.html
 ngcf.html
 test-results/
@@ -21,3 +21,8 @@ idlix-api/
 idlix-api-src/
 idlix-api.tar.gz
 *.tar.gz
+
+# IDLIX infra di-repo (untuk Render deploy) — TAPI folder hasil build lokal tidak
+infrastructure/stealth/tmp/
+infrastructure/stealth/node_modules/
+infrastructure/idlix-api/node_modules/

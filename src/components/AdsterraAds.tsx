@@ -2,28 +2,13 @@
 import { useEffect, useRef } from 'react'
 
 // ═══════════════════════════════════════════════════════════════════
-// Adsterra ads — SEMUA FORMAT (dari dashboard zenflix-ten.vercel.app)
-// 
-// Format:
-// - Popunder (anti-adblock): tab/background baru saat user click/interaksi
-// - SocialBar (anti-adblock): bar sosial bawah
-// - 300x250: banner kotak (sidebar/antar konten)
-// - 728x90: leaderboard (atas konten)
-// - 320x50: mobile banner
-// - 160x600: skyscraper (sidebar)
-// - NativeBanner: 4 gambar sebaris (inline konten)
-// - Smartlink: redirect mobile traffic
-// 
-// Semua script via screwbedriddenheadline.com (anti-adblock CDN)
+// Adsterra ads — ALL FORMATS (dari dashboard zenflix-ten.vercel.app)
+//
+// CATATAN PENTING:
+// Setiap banner Adsterra butuh `atOptions` TEPAT SEBELUM invoke.js di-render.
+// atOptions harus UNIK per banner (ga boleh global — nanti collide & cuma 1 jalan).
+// Solusi: render inline script per banner dalam container sendiri.
 // ═══════════════════════════════════════════════════════════════════
-
-const BANNER_ADS = [
-  { id: 'ad-300x250', script: 'https://screwbedriddenheadline.com/cdb082b17c5df3a8f55b78809456670e/invoke.js', atOptions: { key: 'cdb082b17c5df3a8f55b78809456670e', format: 'iframe', height: 250, width: 300 } },
-  { id: 'ad-728x90', script: 'https://screwbedriddenheadline.com/0d1d255404797f2740a022e177c002c1/invoke.js', atOptions: { key: '0d1d255404797f2740a022e177c002c1', format: 'iframe', height: 90, width: 728 } },
-  { id: 'ad-320x50', script: 'https://screwbedriddenheadline.com/86d2ab14ab08340477ebc8df939a317e/invoke.js', atOptions: { key: '86d2ab14ab08340477ebc8df939a317e', format: 'iframe', height: 50, width: 320 } },
-  { id: 'ad-160x600', script: 'https://screwbedriddenheadline.com/6184e534558879dbca8e994f1061186d/invoke.js', atOptions: { key: '6184e534558879dbca8e994f1061186d', format: 'iframe', height: 600, width: 160 } },
-  { id: 'ad-160x300', script: 'https://screwbedriddenheadline.com/0afe199db21edbe0550b414c3549d9c5/invoke.js', atOptions: { key: '0afe199db21edbe0550b414c3549d9c5', format: 'iframe', height: 300, width: 160 } },
-]
 
 const GLOBAL_ADS = [
   { id: 'popunder', script: 'https://screwbedriddenheadline.com/49/79/c7/4979c79831b572748c793abb9b4c0fd5.js' },
@@ -39,10 +24,8 @@ const NATIVE_AD = {
 // ─── Load global (popunder + socialbar) sekali per mount ───
 export function loadGlobalAds() {
   if (typeof window === 'undefined') return
-  const loaded = new Set<string>()
   GLOBAL_ADS.forEach((ad) => {
-    if (loaded.has(ad.id) || document.querySelector(`script[data-adsterra-global="${ad.id}"]`)) return
-    loaded.add(ad.id)
+    if (document.querySelector(`script[data-adsterra-global="${ad.id}"]`)) return
     const script = document.createElement('script')
     script.src = ad.script
     script.async = true
@@ -51,34 +34,44 @@ export function loadGlobalAds() {
   })
 }
 
-// ─── Banner ad component (renders one format) ───
+// ─── Banner ad — inject inline atOptions + invoke.js per container ───
 export function AdBanner({ format = '300x250', className = '' }: { format?: '300x250' | '728x90' | '320x50' | '160x600' | '160x300'; className?: string }) {
   const bannerRef = useRef<HTMLDivElement>(null)
-  const ad = BANNER_ADS.find((a) => a.id.includes(format)) || BANNER_ADS[0]
+
+  const ADS: Record<string, { key: string; height: number; width: number }> = {
+    '300x250': { key: 'cdb082b17c5df3a8f55b78809456670e', height: 250, width: 300 },
+    '728x90': { key: '0d1d255404797f2740a022e177c002c1', height: 90, width: 728 },
+    '320x50': { key: '86d2ab14ab08340477ebc8df939a317e', height: 50, width: 320 },
+    '160x600': { key: '6184e534558879dbca8e994f1061186d', height: 600, width: 160 },
+    '160x300': { key: '0afe199db21edbe0550b414c3549d9c5', height: 300, width: 160 },
+  }
+  const ad = ADS[format] || ADS['300x250']
 
   useEffect(() => {
     const el = bannerRef.current
     if (!el) return
     // Skip kalau sudah ada
-    if (el.querySelector('iframe, script[data-adsterra-banner]')) return
+    if (el.querySelector('script[data-adsterra-banner]')) return
 
-    // atOptions global (dibaca invoke.js)
-    try {
-      ;(window as any).atOptions = { ...ad.atOptions }
-    } catch {}
-    const script = document.createElement('script')
-    script.src = ad.script
-    script.async = true
-    script.dataset.adsterraBanner = ad.id
-    el.appendChild(script)
+    // INLINE atOptions + invoke.js — unik per container (no global collision)
+    const inline = document.createElement('script')
+    inline.type = 'text/javascript'
+    inline.textContent = `atOptions = { 'key': '${ad.key}', 'format': 'iframe', 'height': ${ad.height}, 'width': ${ad.width}, 'params': {} };`
+    el.appendChild(inline)
+
+    const invoke = document.createElement('script')
+    invoke.src = `https://screwbedriddenheadline.com/${ad.key}/invoke.js`
+    invoke.async = true
+    invoke.dataset.adsterraBanner = ad.key
+    el.appendChild(invoke)
 
     return () => {
-      el.querySelectorAll('script[data-adsterra-banner], iframe[src*="screwbedriddenheadline"]').forEach((s) => s.remove())
+      el.querySelectorAll('script[data-adsterra-banner], script[data-adsterra-inline]').forEach((s) => s.remove())
     }
-  }, [ad])
+  }, [ad.key, ad.height, ad.width])
 
   return (
-    <div ref={bannerRef} className={`flex justify-center items-center overflow-hidden ${className}`} style={{ minHeight: ad.atOptions.height, maxWidth: ad.atOptions.width }} data-adsterra-format={format} />
+    <div ref={bannerRef} className={`flex justify-center items-center overflow-hidden ${className}`} style={{ minHeight: ad.height, maxWidth: ad.width }} data-adsterra-format={format} />
   )
 }
 
@@ -89,14 +82,14 @@ export function NativeAd({ className = '' }: { className?: string }) {
   useEffect(() => {
     const el = nativeRef.current
     if (!el) return
-    if (document.querySelector(`script[data-adsterra-native]`)) return
+    if (el.querySelector(`script[data-adsterra-native]`)) return
     const script = document.createElement('script')
     script.src = NATIVE_AD.script
     script.async = true
     script.dataset.adsterraNative = 'true'
     el.appendChild(script)
     return () => {
-      el.querySelectorAll('script[data-adsterra-native], #container-f836111d03e67511699794e1cfe4071e').forEach((s) => s.remove())
+      el.querySelectorAll('script[data-adsterra-native]').forEach((s) => s.remove())
     }
   }, [])
 
@@ -114,9 +107,7 @@ export const SMARTLINK_URL = 'https://screwbedriddenheadline.com/gykqezh0?key=22
 export default function AdsterraAds() {
   useEffect(() => {
     loadGlobalAds()
-    return () => {
-      document.querySelectorAll('script[data-adsterra-global]').forEach((s) => s.remove())
-    }
+    // JANGAN cleanup di unmount — popunder/socialbar harus persist (ga numpuk karena guard querySelector)
   }, [])
   return null
 }

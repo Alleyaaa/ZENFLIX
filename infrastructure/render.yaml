@@ -1,0 +1,49 @@
+# Render Blueprint — Deploy IDLIX API + Stealth 24/7 di cloud
+# (PC lokal bisa dimatikan setelah ini)
+#
+# Cara pakai:
+# 1. Push repo ke GitHub
+# 2. Dashboard Render → New → Blueprint → pilih repo ini
+# 3. Render otomatis bikin 2 service (stealth + api) dari render.yaml
+#
+# Service API URL: https://idlix-api.onrender.com (default)
+# Lalu set di Vercel: IDLIX_API_URL=https://idlix-api.onrender.com
+
+services:
+  - type: web
+    name: idlix-stealth
+    runtime: docker
+    repo: https://github.com/Alleyaaa/ZENFLIX.git
+    branch: main
+    rootDir: infrastructure/stealth
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: HEADLESS
+        value: "true"
+    plan: free
+
+  - type: web
+    name: idlix-api
+    runtime: docker
+    repo: https://github.com/Alleyaaa/ZENFLIX.git
+    branch: main
+    rootDir: infrastructure/idlix-api
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/home
+    envVars:
+      - key: PORT
+        value: "3000"
+      - key: IDLIX_BASE_URL
+        value: https://z2.idlixku.com
+      - key: STEALTH_API_URL
+        value: http://idlix-stealth.onrender.com:8191
+      - key: CACHE_TTL_DETAIL
+        value: "2"
+      - key: CACHE_TTL_STREAM
+        value: "0.25"
+      - key: CACHE_TTL_SEARCH
+        value: "0.5"
+    plan: free
