@@ -104,10 +104,15 @@ export default function HlsPlayer({ tmdbId, mediaType = 'movie', season = 1, epi
                   video.play().catch(() => {})
                 }
               })
+              hls.on(Hls.Events.LEVEL_SWITCHED, (_e, data) => {
+                const lvl = hls.levels[data.level]
+                if (lvl?.height) setActiveQuality(`${lvl.height}p`)
+              })
               hls.on(Hls.Events.ERROR, (_e, data) => {
                 if (data.fatal) setStatus('error'), setError('Stream gagal dimuat. Coba provider lain.')
               })
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+              // Safari native HLS
               video.src = idlixData.streamUrl
               video.addEventListener('loadedmetadata', () => { if (!cancelled) setStatus('ready') })
             } else {
@@ -254,7 +259,7 @@ export default function HlsPlayer({ tmdbId, mediaType = 'movie', season = 1, epi
       {/* Loading overlay */}
       {status === 'loading' && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/60 z-20">
-          <Loader2 size={36} className="animate-spin text-[var(--accent)]" />
+          <div className="w-10 h-10 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-xs text-white/70">Mencari stream HLS & kualitas terbaik...</p>
         </div>
       )}
@@ -313,7 +318,7 @@ export default function HlsPlayer({ tmdbId, mediaType = 'movie', season = 1, epi
               <span className="text-[11px] text-white/70 font-medium hidden sm:inline">{fmt(currentTime)} / {fmt(duration)}</span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {/* Quality selector */}
               <div className="relative">
                 <button
@@ -337,12 +342,12 @@ export default function HlsPlayer({ tmdbId, mediaType = 'movie', season = 1, epi
                     ))}
                   </div>
                 )}
-              </div>
 
-              {/* Fullscreen */}
-              <button onClick={toggleFullscreen} className="w-8 h-8 rounded-lg hover:bg-white/15 flex items-center justify-center transition-all" aria-label="Fullscreen">
-                <Maximize size={15} className="text-white" />
-              </button>
+                {/* Fullscreen */}
+                <button onClick={toggleFullscreen} className="w-8 h-8 rounded-lg hover:bg-white/15 flex items-center justify-center transition-all" aria-label="Fullscreen">
+                  <Maximize size={15} className="text-white" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
