@@ -93,7 +93,9 @@ export default function HlsPlayer({ tmdbId, mediaType = 'movie', season = 1, epi
             if (Hls.isSupported()) {
               const hls = new Hls({ enableWorker: true, autoStartLoad: true, startLevel: -1 })
               hlsRef.current = hls
-              hls.loadSource(idlixData.streamUrl)
+              // Proxy via server: client ga pernah lihat streamUrl asli (majorplay.net)
+              const proxiedUrl = `/api/hls-proxy?url=${encodeURIComponent(idlixData.streamUrl)}`
+              hls.loadSource(proxiedUrl)
               hls.attachMedia(video)
               hls.on(Hls.Events.MANIFEST_PARSED, () => {
                 if (!cancelled) {
