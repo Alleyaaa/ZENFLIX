@@ -1,19 +1,21 @@
 'use client'
-import { useState } from 'react'
-import Player from './Player'
-import { ChevronLeft, ChevronRight, List } from 'lucide-react'
+import PlayerSection from './PlayerSection'
 
-export default function PlayerTV({ tmdbId, season = 1, episode = 1 }: {
+export default function PlayerTV({ tmdbId, season = 1, episode = 1, title, year }: {
   tmdbId: number
   season?: number
   episode?: number
+  title?: string
+  year?: number
 }) {
   return (
-    <Player
+    <PlayerSection
       tmdbId={tmdbId}
       mediaType="tv"
       season={season}
       episode={episode}
+      title={title}
+      year={year}
     />
   )
 }

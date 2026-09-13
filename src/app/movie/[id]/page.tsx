@@ -4,6 +4,9 @@ import Header from '@/components/Header'
 import PlayerSection from '@/components/PlayerSection'
 import MovieCard from '@/components/MovieCard'
 import AdSlot from '@/components/AdSlot'
+import { AdBanner } from '@/components/AdsterraAds'
+import CommentsSection from '@/components/CommentsSection'
+import DetailActions from '@/components/DetailActions'
 import { tmdbImage, getMovieDetail, getPopular } from '@/lib/tmdb'
 import { Calendar, Clock, Star } from 'lucide-react'
 import Link from 'next/link'
@@ -74,7 +77,9 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
   if (!movie.title) notFound()
 
   const poster = movie.poster_path ? tmdbImage(movie.poster_path, 'w500') : null
-  const backdrop = movie.backdrop_path ? tmdbImage(movie.backdrop_path, 'original') : null
+    const backdrop = movie.backdrop_path
+      ? tmdbImage(movie.backdrop_path, 'original')
+      : (poster ? tmdbImage(movie.poster_path, 'original') : null) // fallback: poster sebagai header
 
   // JSON-LD structured data (SEO)
   const jsonLd = {
@@ -104,15 +109,23 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg)] via-[var(--bg)]/70 to-transparent" />
       </div>
 
-      <div className="max-w-[1400px] mx-auto px-4 -mt-40 relative z-10">
-        <div className="flex gap-6 items-end">
-          {poster && (
-            <div className="w-48 shrink-0 hidden md:block rounded-xl overflow-hidden shadow-2xl border border-[var(--border)]">
-              <img src={poster} alt={movie.title} className="w-full" />
-            </div>
-          )}
-          <div className="flex-1 min-w-0 py-4">
-            <h1 className="text-3xl md:text-5xl font-bold mb-3">{movie.title || 'Unknown'}</h1>
+      <div className="max-w-[1400px] mx-auto px-4 pt-6 relative z-10">
+              <div className="flex gap-6 items-start">
+                {poster && (
+                  <div className="w-44 md:w-48 shrink-0 hidden md:block rounded-xl overflow-hidden shadow-2xl border border-[var(--border)]">
+                    <img src={poster} alt={movie.title} className="w-full" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0 py-2">
+                  <h1 className="text-3xl md:text-5xl font-bold mb-3 text-[var(--text-main)]">{movie.title || 'Unknown'}</h1>
+            <DetailActions
+              mediaType="movie"
+              tmdbId={tmdbId}
+              title={movie.title || 'Unknown'}
+              posterUrl={poster}
+              rating={movie.vote_average}
+              year={movie.release_date?.split('-')[0] || null}
+            />
             <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--text-muted)] mb-4">
               {movie.release_date && (
                 <span className="flex items-center gap-1"><Calendar size={14} />{movie.release_date.split('-')[0]}</span>
@@ -147,7 +160,12 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
           </section>
         )}
 
-        <PlayerSection tmdbId={tmdbId} />
+        <PlayerSection
+          tmdbId={tmdbId}
+          mediaType="movie"
+          title={movie.title || ''}
+          year={parseInt(movie.release_date?.split('-')[0]) || undefined}
+        />
 
         <AdSlot slot="player_pre_roll" format="leaderboard" />
 
@@ -213,7 +231,12 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
                 )}
 
                 <AdSlot slot="sidebar" format="rect" />
-      </main>
-    </>
-  )
-}
+
+                        {/* Ad banner 300x250 di detail */}
+                        <AdBanner format="300x250" className="mx-auto my-6" />
+
+                        <CommentsSection mediaType="movie" tmdbId={tmdbId} />
+                      </main>
+                    </>
+                  )
+                }

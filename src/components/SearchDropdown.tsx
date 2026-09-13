@@ -59,7 +59,7 @@ export default function SearchDropdown({ lang }: { lang: string }) {
               )}
               <div className="min-w-0">
                 <div className="text-xs font-medium truncate text-[var(--text-main)]">{m.title}</div>
-                <div className="text-[10px] text-[var(--text-tertiary)]">{m.release_date?.split('-')[0] || '—'}</div>
+                <div className="text-[10px] text-[var(--text-tertiary)]">{m.release_date?.split('-')[0] || 'Tahun?'}</div>
               </div>
               {m.vote_average > 0 && (
                 <span className="ml-auto text-[10px] text-yellow-400/70 shrink-0">{m.vote_average.toFixed(1)}</span>

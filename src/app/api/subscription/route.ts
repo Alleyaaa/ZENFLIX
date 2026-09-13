@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const MIDTRANS_SERVER_KEY = process.env.MIDTRANS_SERVER_KEY!
-const MIDTRANS_CLIENT_KEY = process.env.MIDTRANS_CLIENT_KEY!
 
 export async function POST(request: NextRequest) {
+  // ─── Auth guard (A01: Broken Access Control) ───
+  const authHeader = request.headers.get('authorization')
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null
+  if (token) {
+    const userRes = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    if (!userRes.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const body = await request.json()
   const { user_id, email, name, tier, amount } = body
 
@@ -11,8 +23,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Tier atau nominal tidak lengkap' }, { status: 400 })
   }
 
+  if (!user_id || user_id === 'anon' || user_id === 'demo') {
+    return NextResponse.json({ error: 'Harus login terlebih dahulu' }, { status: 401 })
+  }
+
   // Order ID berisi tier biar webhook bisa update subscription sesuai paket
-  const orderId = `ZENFLIX_${user_id || 'anon'}_${tier}_${Date.now()}`
+  const orderId = `ZENFLIX_${user_id}_${tier}_${Date.now()}`
 
   const payload = {
     transaction_details: { order_id: orderId, gross_amount: amount },
@@ -20,6 +36,11 @@ export async function POST(request: NextRequest) {
     customer_details: { email: email || 'guest@zenflix.id', first_name: name || 'Guest', last_name: '' },
     enabled_payments: ['credit_card', 'bank_transfer', 'qris', 'gopay', 'shopeepay'],
     credit_card: { secure: true },
+    expiry: {
+      start_time: new Date().toISOString().replace(/[TZ]/g, ' ').slice(0, 19) + ' +0700',
+      unit: 'days',
+      duration: 1,
+    },
   }
 
   try {

@@ -7,6 +7,14 @@ const supabase = createClient(
 )
 
 export async function POST(req: Request) {
+  // ─── ADMIN_TOKEN guard (A01: Broken Access Control) ───
+  // Fail-closed: tanpa ADMIN_TOKEN yang benar, endpoint TERTUTUP.
+  const adminToken = process.env.ADMIN_TOKEN
+  const provided = req.headers.get('x-admin-token')
+  if (!adminToken || provided !== adminToken) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const { query } = await req.json()
   if (!query) {
     return NextResponse.json({ error: 'No query provided' }, { status: 400 })

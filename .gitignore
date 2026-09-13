@@ -9,3 +9,15 @@ scripts/*.py
 scripts/create_tables.sql
 src/middleware.ts
 .vercel
+.env*
+
+# Build artifacts & temp
+vp.html
+ngcf.html
+test-results/
+playwright-report/
+idlix-build/
+idlix-api/
+idlix-api-src/
+idlix-api.tar.gz
+*.tar.gz

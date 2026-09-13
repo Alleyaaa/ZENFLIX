@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import Header from '@/components/Header'
 import MovieCard from '@/components/MovieCard'
-import { tmdbImage } from '@/lib/tmdb'
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY
 const TMDB_BASE = 'https://api.themoviedb.org/3'
@@ -51,7 +50,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
     const res = await fetch(url, { next: { revalidate: 3600 } })
     if (res.ok) {
       const data = await res.json()
-      movies = (data.results || []).slice(0, 30)
+      movies = (data.results || []).slice(0, 24)
     }
   } catch {
     movies = []
@@ -64,16 +63,16 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         <h1 className="text-2xl md:text-3xl font-bold mb-2">{entry.label}</h1>
         <p className="text-sm text-[var(--text-muted)] mb-6">{entry.desc}</p>
         {movies.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-[var(--text-muted)]">Belum ada judul untuk kategori ini.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-            {movies.map(movie => (
-              <MovieCard key={movie.id} movie={movie} />
-            ))}
-          </div>
-        )}
+                  <div className="text-center py-16">
+                    <p className="text-[var(--text-muted)]">Belum ada judul untuk kategori ini.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+                    {movies.map(movie => (
+                      <MovieCard key={movie.id} movie={movie} />
+                    ))}
+                  </div>
+                )}
       </main>
     </>
   )

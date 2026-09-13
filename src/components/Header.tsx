@@ -5,6 +5,7 @@ import { useLang } from '@/lib/lang-context'
 import { useState, useEffect } from 'react'
 import { Moon, Sun, Languages, Film, Menu, X, ChevronDown, Tv, Calendar, Globe, Radio, Trophy } from 'lucide-react'
 import SearchDropdown from './SearchDropdown'
+import SupportButtons from './SupportButtons'
 
 // Daftar genre (19)
 const GENRES = [
@@ -74,7 +75,7 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [genreOpen, setGenreOpen] = useState(false)
+  const [, setGenreOpen] = useState(false)
   const [browseOpen, setBrowseOpen] = useState(false)
   const [userOpen, setUserOpen] = useState(false)
 
@@ -131,10 +132,10 @@ export default function Header() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? 'glass-nav shadow-lg' : 'bg-transparent'
-        }`}
-      >
+              className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 glass-nav ${
+                scrolled ? 'shadow-lg' : ''
+              }`}
+            >
         <div className="max-w-[1400px] mx-auto flex items-center justify-between px-4 h-14 md:h-16">
           <Link href="/" className="text-xl font-bold tracking-tight hover:opacity-90 transition-opacity">
             ZENFLIX
@@ -247,8 +248,9 @@ export default function Header() {
           </nav>
 
           {/* Right actions */}
-          <div className="flex items-center gap-2">
-            <SearchDropdown lang={lang} />
+                    <div className="flex items-center gap-2">
+                      <SupportButtons />
+                      <SearchDropdown lang={lang} />
 
             {/* Theme toggle: instant */}
             <button
@@ -307,14 +309,14 @@ export default function Header() {
             )}
 
             {/* Mobile menu button */}
-            <button
-              className="md:hidden w-8 h-8 rounded-lg glass-card flex items-center justify-center hover:bg-[var(--border)]/30 transition-all"
-              onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label="Menu"
-              aria-expanded={mobileOpen}
-            >
-              {mobileOpen ? <X size={20} className="text-[var(--text-main)]" /> : <Menu size={20} className="text-[var(--text-muted)]" />}
-            </button>
+                        <button
+                          className="md:hidden w-8 h-8 rounded-lg glass-card flex items-center justify-center hover:bg-[var(--border)]/30 transition-all"
+                          onClick={() => setMobileOpen(true)}
+                          aria-label="Menu"
+                          aria-expanded={mobileOpen}
+                        >
+                          {mobileOpen ? <X size={20} className="text-[var(--text-main)]" /> : <Menu size={20} className="text-[var(--text-muted)]" />}
+                        </button>
           </div>
         </div>
       </header>

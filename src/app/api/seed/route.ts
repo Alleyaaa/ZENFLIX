@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 const TMDB_KEY = process.env.TMDB_API_KEY!
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -86,7 +86,15 @@ async function fetchPage(path: string, page: number): Promise<MovieRow[]> {
     })
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // ─── ADMIN_TOKEN guard (A01: Broken Access Control) ───
+  // Fail-closed: tanpa header x-admin-token yang benar, endpoint TERTUTUP.
+  const adminToken = process.env.ADMIN_TOKEN
+  const provided = request.headers.get('x-admin-token') || ''
+  if (!adminToken || provided !== adminToken) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const seen = new Set<number>()
   const allMovies: MovieRow[] = []
 

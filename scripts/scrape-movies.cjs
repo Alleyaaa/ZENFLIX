@@ -1,8 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
-import { writeFileSync } from 'fs';
-import { resolve } from 'path';
 
 dotenv.config();
 async function seed() {

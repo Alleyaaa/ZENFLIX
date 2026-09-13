@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Ignore the ES modules script (we'll use CommonJS for now)
     "scripts/scrape-movies.js",
+    // Ignore service worker (plain browser JS, not a module)
+    "public/sw.js",
   ]),
   {
     // Disable react-hooks/set-state-in-effect for this project

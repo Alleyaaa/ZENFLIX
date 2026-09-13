@@ -7,6 +7,19 @@ const supabase = createClient(
 )
 
 export async function GET(request: NextRequest) {
+  // ─── Auth guard (A01: Broken Access Control) ───
+  const authHeader = request.headers.get('authorization')
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null
+  if (token) {
+    const userRes = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    if (!userRes.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const searchParams = request.nextUrl.searchParams
   const userId = searchParams.get('user_id')
 
@@ -25,6 +38,19 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  // ─── Auth guard (A01: Broken Access Control) ───
+  const authHeader = request.headers.get('authorization')
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null
+  if (token) {
+    const userRes = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    if (!userRes.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const body = await request.json()
   const { user_id, movie_id, title, poster_url, rating } = body
 
@@ -42,6 +68,19 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  // ─── Auth guard (A01: Broken Access Control) ───
+  const authHeader = request.headers.get('authorization')
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null
+  if (token) {
+    const userRes = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    if (!userRes.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const searchParams = request.nextUrl.searchParams
   const userId = searchParams.get('user_id')
   const movieId = searchParams.get('movie_id')

@@ -105,34 +105,37 @@ export default function GenrePage({ params }: { params: Promise<{ id: string }> 
       <Header />
       <main className="max-w-[1400px] mx-auto px-4 py-6 md:pt-24 pb-16">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">
-              Film {genreName?.id || ''}
-            </h1>
-            {totalResults > 0 && (
-              <p className="text-sm text-[var(--text-muted)] mt-1">
-                {totalResults.toLocaleString('id-ID')} judul • Halaman {page} dari {totalPages.toLocaleString('id-ID')}
-              </p>
-            )}
-          </div>
-          {/* Page size selector */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-[var(--text-tertiary)]">Per halaman:</span>
-            <div className="flex gap-1 bg-[var(--bg-elevated)] rounded-lg p-1">
-              {PAGE_SIZES.map(size => (
-                <button
-                  key={size}
-                  onClick={() => { setPageSize(size); setPage(1) }}
-                  className={`px-3 py-1 rounded-md text-xs transition-all ${pageSize === size ? 'bg-[var(--accent)] font-semibold' : 'hover:bg-[var(--border)]/30 text-[var(--text-muted)]'}`}
-                  style={pageSize === size ? { color: 'var(--accent-contrast)' } : undefined}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+                  <div>
+                    <span className="inline-block px-3 py-1 rounded-md bg-[var(--accent)] text-xs font-bold mb-3 uppercase tracking-wide" style={{ color: 'var(--accent-contrast)' }}>
+                      Genre
+                    </span>
+                    <h1 className="text-2xl md:text-3xl font-bold">
+                      {genreName?.id || ''}
+                    </h1>
+                    {totalResults > 0 && (
+                      <p className="text-sm text-[var(--text-muted)] mt-1">
+                        {totalResults.toLocaleString('id-ID')} judul, halaman {page} dari {totalPages.toLocaleString('id-ID')}
+                      </p>
+                    )}
+                  </div>
+                  {/* Page size selector */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-[var(--text-tertiary)]">Per halaman:</span>
+                    <div className="flex gap-1 bg-[var(--bg-elevated)] rounded-lg p-1">
+                      {PAGE_SIZES.map(size => (
+                        <button
+                          key={size}
+                          onClick={() => { setPageSize(size); setPage(1) }}
+                          className={`px-3 py-1 rounded-md text-xs transition-all ${pageSize === size ? 'bg-[var(--accent)] font-semibold' : 'hover:bg-[var(--border)]/30 text-[var(--text-muted)]'}`}
+                          style={pageSize === size ? { color: 'var(--accent-contrast)' } : undefined}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
         <AdSlot slot="genre_page_top" format="banner" className="mb-6" />
 
@@ -157,7 +160,7 @@ export default function GenrePage({ params }: { params: Promise<{ id: string }> 
                   disabled={page <= 1}
                   className="px-4 py-2 rounded-lg glass-btn text-sm disabled:opacity-40 flex items-center gap-1"
                 >
-                  <ChevronLeft size={16} /> Prev
+                  <ChevronLeft size={16} /> Sebelumnya
                 </button>
 
                 {/* Page numbers */}
@@ -189,7 +192,7 @@ export default function GenrePage({ params }: { params: Promise<{ id: string }> 
                   disabled={page >= totalPages}
                   className="px-4 py-2 rounded-lg glass-btn text-sm disabled:opacity-40 flex items-center gap-1"
                 >
-                  Next <ChevronRight size={16} />
+                  Selanjutnya <ChevronRight size={16} />
                 </button>
               </div>
             )}

@@ -5,7 +5,6 @@ import { AlertTriangle, RotateCcw, Loader2 } from 'lucide-react'
 
 interface SourceChannel {
   index: number
-  url: string
   name: string
 }
 
@@ -87,7 +86,7 @@ export default function Player({ tmdbId, mediaType = 'movie', season = 1, episod
     } catch {}
   }, [user, enableProgress, saveProgress, duration, progress, tmdbId, mediaType, season, episode])
 
-  // ─── Load channels + trailer + imdb ───
+  // ─── Load channels + trailer ───
   useEffect(() => {
     let cancelled = false
     setMode('loading')
@@ -174,22 +173,10 @@ export default function Player({ tmdbId, mediaType = 'movie', season = 1, episod
     if (progress > 10 && user) saveProgress(progress, duration)
     setCurrentChannel(index)
     setMode('loading')
-    if (progress > 30) setPendingStartAt(Math.round(progress))
   }
 
-  // ─── Build URL dengan resume (startAt) ───
-  const buildUrl = useCallback(() => {
-    const ch = channels.find(c => c.index === currentChannel)
-    if (!ch) return ''
-    let url = ch.url
-    const resumeAt = pendingStartAt ?? (savedProgress > 30 && !resumed ? Math.round(savedProgress) : null)
-    if (resumeAt) {
-      url += `&startAt=${resumeAt}`
-      if (!pendingStartAt) setResumed(true)
-      setPendingStartAt(null)
-    }
-    return url
-  }, [channels, currentChannel, savedProgress, resumed, pendingStartAt])
+  // ─── Build iframe URL: internal path (hidden source) ───
+  const iframeSrc = `/api/stream-proxy?id=${tmdbId}&type=${mediaType}&season=${season}&episode=${episode}&ch=${currentChannel}`
 
   // ─── Trailer fallback ───
   if (mode === 'error') {
@@ -225,11 +212,9 @@ export default function Player({ tmdbId, mediaType = 'movie', season = 1, episod
     )
   }
 
-  const url = buildUrl()
-
   return (
     <div className="space-y-2">
-      {/* Video Player: bersih, kontrol bawaan VidSrc */}
+      {/* Video Player: iframe internal (source tersembunyi) */}
       <div className="aspect-video w-full rounded-xl overflow-hidden relative bg-black/70 border border-[var(--border)]">
         {mode === 'loading' && (
           <div className="absolute inset-0 flex items-center justify-center z-10 bg-[var(--bg)]/60 pointer-events-none">
@@ -239,29 +224,16 @@ export default function Player({ tmdbId, mediaType = 'movie', season = 1, episod
             </div>
           </div>
         )}
-
-        {url && (
-          <iframe
-            key={`${currentChannel}-${url}`}
-            src={url}
-            className="w-full h-full"
-            allowFullScreen
-            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-            referrerPolicy="no-referrer"
-            onError={() => {
-              const next = channels.find(c => c.index !== currentChannel)
-              if (next) {
-                if (progress > 30) setPendingStartAt(Math.round(progress))
-                switchChannel(next.index)
-              } else {
-                setMode('error')
-                setError('Semua channel gagal dimuat.')
-              }
-            }}
-            onLoad={() => setMode('playing')}
-            title={`Pemutar Channel ${currentChannel}`}
-          />
-        )}
+        <iframe
+          key={`${currentChannel}-${tmdbId}`}
+          src={iframeSrc}
+          className="w-full h-full"
+          allowFullScreen
+          allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+          referrerPolicy="no-referrer"
+          onLoad={() => setMode('playing')}
+          title={`Pemutar Channel ${currentChannel}`}
+        />
       </div>
 
       {/* Channel picker */}

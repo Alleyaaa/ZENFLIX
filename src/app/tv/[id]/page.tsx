@@ -4,8 +4,10 @@ import Header from '@/components/Header'
 import MovieCard from '@/components/MovieCard'
 import TVEpisodePicker from '@/components/TVEpisodePicker'
 import AdSlot from '@/components/AdSlot'
+import CommentsSection from '@/components/CommentsSection'
+import DetailActions from '@/components/DetailActions'
 import { notFound } from 'next/navigation'
-import { Calendar, Clock, Star, Tv } from 'lucide-react'
+import { Calendar, Star, Tv } from 'lucide-react'
 import Link from 'next/link'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -69,7 +71,9 @@ export default async function TVDetailPage({ params }: { params: Promise<{ id: s
 
   const seasons = show.seasons || []
   const poster = show.poster_path ? 'https://image.tmdb.org/t/p/w500' + show.poster_path : null
-  const backdrop = show.backdrop_path ? 'https://image.tmdb.org/t/p/original' + show.backdrop_path : null
+    const backdrop = show.backdrop_path
+      ? 'https://image.tmdb.org/t/p/original' + show.backdrop_path
+      : (poster ? 'https://image.tmdb.org/t/p/original' + show.poster_path : null) // fallback
 
   return (
     <>
@@ -83,15 +87,23 @@ export default async function TVDetailPage({ params }: { params: Promise<{ id: s
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg)] via-[var(--bg)]/70 to-transparent" />
       </div>
 
-      <div className="max-w-[1400px] mx-auto px-4 -mt-40 relative z-10">
-        <div className="flex gap-6 items-end">
-          {poster && (
-            <div className="w-48 shrink-0 hidden md:block rounded-xl overflow-hidden shadow-2xl border border-[var(--border)]">
-              <img src={poster} alt={show.name} className="w-full" />
-            </div>
-          )}
-          <div className="flex-1 min-w-0 py-4">
-            <h1 className="text-3xl md:text-5xl font-bold mb-3">{show.name || 'Unknown'}</h1>
+      <div className="max-w-[1400px] mx-auto px-4 pt-6 relative z-10">
+              <div className="flex gap-6 items-start">
+                {poster && (
+                  <div className="w-44 md:w-48 shrink-0 hidden md:block rounded-xl overflow-hidden shadow-2xl border border-[var(--border)]">
+                    <img src={poster} alt={show.name} className="w-full" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0 py-2">
+                  <h1 className="text-3xl md:text-5xl font-bold mb-3 text-[var(--text-main)]">{show.name || 'Unknown'}</h1>
+            <DetailActions
+              mediaType="tv"
+              tmdbId={tmdbId}
+              title={show.name || 'Unknown'}
+              posterUrl={poster}
+              rating={show.vote_average}
+              year={show.first_air_date?.split('-')[0] || null}
+            />
             <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--text-muted)] mb-4">
               {show.first_air_date && (
                 <span className="flex items-center gap-1"><Calendar size={14} />{show.first_air_date.split('-')[0]}</span>
@@ -127,9 +139,9 @@ export default async function TVDetailPage({ params }: { params: Promise<{ id: s
         )}
 
         {/* Season & Episode picker + player */}
-        <section>
-          <TVEpisodePicker tmdbId={tmdbId} seasons={seasons} />
-        </section>
+                <section>
+                  <TVEpisodePicker tmdbId={tmdbId} seasons={seasons} title={show.name || ''} year={parseInt(show.first_air_date?.split('-')[0]) || undefined} />
+                </section>
 
         <AdSlot slot="player_pre_roll" format="leaderboard" />
 
@@ -181,7 +193,9 @@ export default async function TVDetailPage({ params }: { params: Promise<{ id: s
         )}
 
         <AdSlot slot="sidebar" format="rect" />
-      </main>
-    </>
-  )
-}
+
+                <CommentsSection mediaType="tv" tmdbId={tmdbId} />
+              </main>
+            </>
+          )
+        }

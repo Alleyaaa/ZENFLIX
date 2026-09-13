@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verifikasi Akun Zenflix</title>
+</head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:#0f0f12;color:#fff;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;padding:40px 20px;">
+    <tr>
+      <td style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);border-radius:16px;padding:40px;border:1px solid rgba(139,92,246,0.2);">
+        <!-- Logo -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="text-align:center;padding-bottom:32px;">
+              <div style="font-size:28px;font-weight:800;background:linear-gradient(135deg,#8B5CF6,#EC4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.5px;">ZENFLIX</div>
+              <p style="margin:8px 0 0;color:rgba(255,255,255,0.5);font-size:14px;">Streaming Film Premium</p>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Content -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="text-align:center;padding-bottom:24px;">
+              <h1 style="margin:0 0 16px;font-size:24px;font-weight:700;color:#fff;">Verifikasi Email Anda</h1>
+              <p style="margin:0;color:rgba(255,255,255,0.7);font-size:16px;line-height:1.6;">Halo! Terima kasih sudah mendaftar di Zenflix. Klik tombol di bawah untuk memverifikasi alamat email Anda dan mulai menikmati ribuan film & serial.</p>
+            </td>
+          </tr>
+        </table>
+
+        <!-- CTA Button -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="text-align:center;padding:24px 0;">
+              <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:linear-gradient(135deg,#8B5CF6,#EC4899);color:#fff;text-decoration:none;padding:16px 32px;border-radius:12px;font-weight:600;font-size:16px;box-shadow:0 4px 20px rgba(139,92,246,0.4);transition:all 0.2s;">Verifikasi Sekarang</a>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Alternative link -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="text-align:center;padding-top:16px;">
+              <p style="margin:0;color:rgba(255,255,255,0.5);font-size:13px;">Tombol tidak bisa diklik? Salin link ini ke browser:</p>
+              <p style="margin:8px 0 0;color:#8B5CF6;font-size:13px;word-break:break-all;">{{ .ConfirmationURL }}</p>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Tips -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding-top:32px;border-top:1px solid rgba(139,92,246,0.1);">
+              <div style="background:rgba(139,92,246,0.1);border-radius:12px;padding:20px;">
+                <p style="margin:0 0 12px;font-weight:600;color:#8B5CF6;font-size:14px;">💡 Tips Cepat:</p>
+                <ul style="margin:0;padding-left:20px;color:rgba(255,255,255,0.7);font-size:13px;line-height:1.8;">
+                  <li>Cek folder <strong>Spam/Junk/Promotions</strong> kalau email nggak muncul di Inbox</li>
+                  <li>Link ini berlaku <strong>24 jam</strong> — segera verifikasi ya!</li>
+                  <li>Gunakan email yang aktif buat notifikasi langganan & pembayaran</li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Footer -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding-top:32px;text-align:center;color:rgba(255,255,255,0.4);font-size:12px;">
+              <p style="margin:0 0 8px;">Butuh bantuan? Hubungi <a href="mailto:support@zenflix.app" style="color:#8B5CF6;text-decoration:none;">support@zenflix.app</a></p>
+              <p style="margin:0;">© 2025 Zenflix. All rights reserved.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     const parts = orderId?.split('_') || []
     const userId = parts[1]
     const tier = parts[2] || 'premium'
-    const expiresDays = tier === 'ultimate' ? 30 : tier === 'premium' ? 30 : 30
+    const expiresDays = 30
 
     const isSuccess =
       (transactionStatus === 'capture' && fraudStatus === 'accept') ||
