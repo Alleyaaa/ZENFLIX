@@ -41,6 +41,21 @@ export default function HlsPlayer({ tmdbId, mediaType = 'movie', season = 1, epi
   const [host, setHost] = useState('vidsrcme.ru')
   const [provider, setProvider] = useState<'idlix' | 'vidsrc'>('idlix')
   const [subtitles, setSubtitles] = useState<{ lang: string; label: string; url: string }[]>([])
+  const autoFallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // ─── Auto-fallback: kalau IDLIX timeout (PC mati) → switch ke embed ───
+  useEffect(() => {
+    if (provider !== 'idlix') return
+    // IDLIX harus resolve < 10 detik; kalau ga → otomatis switch embed
+    if (autoFallbackRef.current) clearTimeout(autoFallbackRef.current)
+    autoFallbackRef.current = setTimeout(() => {
+      // Kalau masih loading setelah 10s berarti IDLIX (PC) mati/gagal → auto embed
+      if (onUseEmbed && status === 'loading') {
+        onUseEmbed()
+      }
+    }, 12000)
+    return () => { if (autoFallbackRef.current) clearTimeout(autoFallbackRef.current) }
+  }, [provider, status, onUseEmbed])
 
   // ─── Resolve HLS + init player ───
   useEffect(() => {

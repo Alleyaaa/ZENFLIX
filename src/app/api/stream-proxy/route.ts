@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 /**
- * Stream Proxy (hidden source)
+ * Stream Proxy (hidden source) — FIXED with <base href>
  *
- * Client iframe menunjuk ke /api/stream-proxy?ch=N → server fetch halaman source
- * Vidsrc/MultiEmbed, teruskan HTML. Rewrite MINIMAL biar ga patah:
- * - URL relatif → absolut ke host source (biar asset/iframe di dalam tetap jalan)
- * - Tidak rewrite referensi host source ke proxy kita (biar enginenya jalan normal)
- * - Client tetap TIDAK melihat URL source karena iframe src = /api/stream-proxy
+ * Kenapa sebelumnya rusak:
+ * - Rewrite URL relatif→absolut bikin JS engine vidsrc patah → kontrol ga jalan
+ * - Asset yang di-proxy (stream-assets) juga bikin JS break (CORS/origin mismatch)
+ *
+ * Solusi yang bener:
+ * - Inject <base href="https://<host>/"> di <head> HTML embed.
+ *   Semua URL relatif (/assets/...) resolve ke host asli → JS & kontrol JALAN normal.
+ * - TIDAK rewrite apa-apa → HTML utuh, engine happy.
+ * - Top-level iframe src tetap /api/stream-proxy → user ga lihat domain source.
+ * - Nested iframe ke vidsrc domain diizinkan via CSP frame-src (sudah di-set).
  */
 
 const TMDB_KEY = process.env.TMDB_API_KEY
@@ -24,7 +29,7 @@ export async function GET(request: NextRequest) {
 
   if (!tmdbId) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
-  // ─── IMDB ID (beberapa provider prefer IMDB) ───
+  // ─── IMDB ID (VidSrc prefer IMDB kalau ada) ───
   let imdbId: string | null = null
   try {
     const endpoint = type === 'tv' ? `/tv/${tmdbId}/external_ids?` : `/movie/${tmdbId}/external_ids?`
@@ -40,7 +45,7 @@ export async function GET(request: NextRequest) {
 
   const movieId = imdbId || tmdbId
 
-  // ─── Pilih source per channel (server-side, ga pernah ke client) ───
+  // ─── Pilih source per channel ───
   let host: string
   let embedUrl: string
   if (ch === 1) {
@@ -79,12 +84,14 @@ export async function GET(request: NextRequest) {
     }
     let html = await upstream.text()
 
-    // ─── Rewrite MINIMAL: relative → absolute (biar engine jalan) ───
-    const hostBase = `https://${host}`
-    // src="/..." & href="/..." → domain source (biar sub-asset di dalam bisa load)
-    html = html.replace(/(src|href)="\//g, `$1="${hostBase}/`)
-    // //example.com → https://example.com
-    html = html.replace(/(src|href)="\/\//g, `$1="https://`)
+    // ─── Inject <base href> biar relative URL resolve ke host asli ───
+    // (engine JS & kontrol video jalan normal; user tetap lihat /api/stream-proxy)
+    const baseTag = `<base href="${host === 'multiembed.mov' ? 'https://multiembed.mov/' : `https://${host}/`}">`
+    if (html.includes('<head>')) {
+      html = html.replace('<head>', `<head>${baseTag}`)
+    } else {
+      html = baseTag + html
+    }
 
     return new NextResponse(html, {
       status: 200,
