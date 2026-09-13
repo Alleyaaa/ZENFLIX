@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from './AuthProvider'
 import Link from 'next/link'
 import { Heart, Bookmark, Loader2 } from 'lucide-react'
@@ -20,14 +20,10 @@ export default function DetailActions({ mediaType, tmdbId, title, posterUrl, rat
   const { user } = useAuth()
   const [isFav, setIsFav] = useState(false)
   const [isWL, setIsWL] = useState(false)
-  const [loadingFav, setLoadingFav] = useState(true)
-  const [loadingWL, setLoadingWL] = useState(true)
   const [busy, setBusy] = useState<string | null>(null)
 
-  const loadState = useCallback(async () => {
+  const loadState = async () => {
     if (!user?.id) {
-      setLoadingFav(false)
-      setLoadingWL(false)
       return
     }
     try {
@@ -38,16 +34,14 @@ export default function DetailActions({ mediaType, tmdbId, title, posterUrl, rat
       setIsFav(!!favRes.data)
       setIsWL(!!wlRes.data)
     } catch {
-      // fallback: ksong
-    } finally {
-      setLoadingFav(false)
-      setLoadingWL(false)
+      // silent
     }
-  }, [user?.id, mediaType, tmdbId])
+  }
 
   useEffect(() => {
     loadState()
-  }, [loadState])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, mediaType, tmdbId])
 
   const toggle = async (kind: 'fav' | 'wl') => {
     if (!user?.id || busy) return

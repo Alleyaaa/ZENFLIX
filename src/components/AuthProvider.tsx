@@ -25,7 +25,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const inactiveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const userRef = useRef<User | null>(null)
-  userRef.current = user
+
+  // Keep userRef in sync with user state (React 19: no ref assignment during render)
+  useEffect(() => {
+    userRef.current = user
+  }, [user])
 
   // ─── Sign out ───
   const signOut = useCallback(async () => {

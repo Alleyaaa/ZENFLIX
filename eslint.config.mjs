@@ -15,8 +15,17 @@ const eslintConfig = defineConfig([
     // Ignore the ES modules script (we'll use CommonJS for now)
     "scripts/scrape-movies.js",
     // Ignore service worker (plain browser JS, not a module)
-    "public/sw.js",
-  ]),
+        "public/sw.js",
+        // Ignore build artifacts & third-party sources
+        "idlix-build/**",
+        "idlix-api/**",
+        "idlix-api-src/**",
+        "test-results/**",
+        "playwright-report/**",
+        "vp.html",
+        "ngcf.html",
+        "*.tar.gz",
+      ]),
   {
     // Disable react-hooks/set-state-in-effect for this project
     // The code works fine with synchronous setState in some useEffect hooks
